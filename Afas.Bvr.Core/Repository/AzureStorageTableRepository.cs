@@ -1,5 +1,4 @@
-﻿using Afas.Bvr.Core.Logging;
-using Azure;
+﻿using Azure;
 using Azure.Data.Tables;
 
 namespace Afas.Bvr.Core.Repository;

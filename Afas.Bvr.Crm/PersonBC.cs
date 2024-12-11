@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Afas.Bvr.Core.BusinessLogic;
 using Afas.Bvr.Core.Repository;
 
 namespace Afas.Bvr.Crm;
@@ -18,6 +14,9 @@ public class PersonBC
 
   public async Task AddPerson(Person person)
   {
+    BusinessValidations.ValidateNotNullOrEmpty(person.FirstName);
+    BusinessValidations.ValidateNotNullOrEmpty(person.LastName);
+
     await _repository.Add<Guid, Person>(person);
   }
 

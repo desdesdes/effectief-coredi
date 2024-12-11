@@ -1,6 +1,5 @@
 ﻿using Afas.Bvr.Core.Repository;
 using Afas.Bvr.Crm;
-using Azure;
 
 namespace ConsoleApp1;
 
