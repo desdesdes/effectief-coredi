@@ -14,8 +14,8 @@ public class PersonBC
 
   public async Task AddPerson(Person person)
   {
-    BusinessValidations.ValidateNotNullOrEmpty(person.FirstName);
-    BusinessValidations.ValidateNotNullOrEmpty(person.LastName);
+    BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(person.FirstName);
+    BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(person.LastName);
 
     await _repository.Add<Guid, Person>(person);
   }

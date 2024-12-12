@@ -1,6 +1,6 @@
 ﻿namespace Afas.Bvr.Core.Logging;
 
-internal class FileLogger : ILogger
+public class FileLogger : ILogger
 {
   private readonly string _filePath;
 
