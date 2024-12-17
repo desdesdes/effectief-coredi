@@ -1,6 +1,6 @@
 ﻿namespace Afas.Bvr.Core.Repository;
 
-public abstract class RepositoryObject<T> where T : notnull
+public abstract class RepositoryObject<TKey> where TKey : notnull
 {
-  public required virtual T Id { get; set; }
+  public required virtual TKey Id { get; set; }
 }

@@ -1,4 +1,5 @@
 ﻿using Afas.Bvr.Core.BusinessLogic;
+using Afas.Bvr.Core.Logging;
 using Afas.Bvr.Core.Repository;
 
 namespace Afas.Bvr.Crm;
@@ -6,22 +7,30 @@ namespace Afas.Bvr.Crm;
 public class PersonBC
 {
   private readonly Repository _repository;
+  private readonly ILogger? _logger;
 
-  public PersonBC(Repository repository)
+  public PersonBC(StorageSettings settings, ILogger? logger = null)
   {
-    _repository = repository;
+    _repository = Repository.CreateRepository(settings);
+    _logger = logger;
   }
 
   public async Task AddPerson(Person person)
   {
+    _logger?.LogInformation($"AddPerson '{person.Id}'");
+
     BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(person.FirstName);
     BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(person.LastName);
+
+    CrmValidations.ValidatePhoneNumber(person.PhoneNumber);
 
     await _repository.Add<Guid, Person>(person);
   }
 
   public async Task DeletePerson(Guid id)
   {
+    _logger?.LogInformation($"DeletePerson '{id}'");
+
     await _repository.Delete<Guid, Person>(id);
   }
 }

@@ -10,7 +10,7 @@ public class BusinessValidationsTests
   [TestCase("\r", true)]
   [TestCase("\n", true)]
   [TestCase("\n\r", true)]
-  public void NotNullOrEmpty(string? input, bool success)
+  public void NotNullOrEmptyTests(string? input, bool success)
   {
     if(success)
     {

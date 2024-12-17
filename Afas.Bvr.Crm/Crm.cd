@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Afas.Bvr.Crm.PersonBC">
+    <Position X="4.25" Y="2" Width="3" />
+    <Members>
+      <Method Name="PersonBC" Hidden="true" />
+    </Members>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAIAAAAAAAAAAAAAgAAEA=</HashCode>
+      <FileName>PersonBC.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Afas.Bvr.Crm.Person">
+    <Position X="1" Y="2" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAACAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>Person.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Afas.Bvr.Core.Repository.RepositoryObject&lt;TKey&gt;">
+    <Position X="1.25" Y="4.75" Width="2.25" />
+    <Members>
+      <Method Name="RepositoryObject" Hidden="true" />
+    </Members>
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

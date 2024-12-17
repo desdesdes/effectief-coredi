@@ -4,12 +4,13 @@ using Dapper;
 
 namespace Afas.Bvr.Core.Repository;
 
-public class MsSqlRepository : Repository
+/// <threadsafety static="true" instance="true"/>
+public class MSSqlRepository : Repository
 {
   private readonly string _connectionString;
   private readonly HashSet<string> _tablesCreated = new(StringComparer.OrdinalIgnoreCase);
 
-  public MsSqlRepository(string connectionString)
+  public MSSqlRepository(string connectionString)
   {
     _connectionString = connectionString;
   }

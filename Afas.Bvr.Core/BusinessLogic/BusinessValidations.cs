@@ -1,16 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Afas.Bvr.Core.BusinessLogic;
 
 public static partial class BusinessValidations
 {
-  public static void NotNullOrEmpty([NotNull] string? argument, [CallerArgumentExpression("argument")] string? paramName = null)
+  public static void NotNullOrEmpty([NotNull] string? argument)
   {
     if(string.IsNullOrEmpty(argument))
     {
-      throw new Exception($"{paramName} cannot be null or empty");
+      throw new Exception($"String cannot be null or empty.");
     }
   }
 

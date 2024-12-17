@@ -3,6 +3,7 @@ using Azure.Data.Tables;
 
 namespace Afas.Bvr.Core.Repository;
 
+/// <threadsafety static="true" instance="true"/>
 public class AzureStorageTableRepository : Repository
 {
   readonly TableServiceClient _serviceClient;

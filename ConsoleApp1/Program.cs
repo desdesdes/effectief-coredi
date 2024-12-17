@@ -1,4 +1,6 @@
-﻿using Afas.Bvr.Core.Repository;
+﻿using System.Text.Json;
+using Afas.Bvr.Core.Logging;
+using Afas.Bvr.Core.Repository;
 using Afas.Bvr.Crm;
 
 namespace ConsoleApp1;
@@ -7,15 +9,18 @@ internal class Program
 {
   static async Task Main(string[] args)
   {
-    Console.WriteLine("Hello, World!");
+    var settings = JsonSerializer.Deserialize<StorageSettings>(File.ReadAllText("appsettings.json"))!;
+    var logger = new ConsoleLogger();
 
-    var repo = new AzureStorageTableRepository(@"https://codedidemo.table.core.windows.net/", @"sv=2022-11-02&ss=t&srt=sco&sp=rwdlacu&se=2028-12-11T23:55:39Z&st=2024-12-11T15:55:39Z&spr=https&sig=e684bQmmbwMXysmGBlbIlA4h365DFVDlJa1nVVeINOk%3D");
-    //var repo = new MsSqlRepository(@"Server=.\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;");
-
-    var bc = new PersonBC(repo);
+    var bc = new PersonBC(settings, logger);
 
     var personId = Guid.NewGuid();
+    Console.WriteLine("AddPerson");
     await bc.AddPerson(new Person { Id=personId, FirstName="Bart", LastName="Vries", Email="bart.vries@afas.nl" });
+
+    Console.WriteLine("DeletePerson");
     await bc.DeletePerson(personId);
+
+    Console.WriteLine("Done!");
   }
 }

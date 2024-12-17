@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Afas.Bvr.Core.Repository.Repository">
+    <Position X="5" Y="2" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAgAAAAAAAAAEAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Repository\Repository.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Afas.Bvr.Core.Repository.AzureStorageTableRepository" Collapsed="true">
+    <Position X="5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAEAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>Repository\AzureStorageTableRepository.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Afas.Bvr.Core.Repository.MSSqlRepository" Collapsed="true">
+    <Position X="7.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAQAAAAAAAAAAAAAEAQAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Repository\MSSqlRepository.cs</FileName>
+      <NewMemberFileName>Repository\MsSqlRepository.cs</NewMemberFileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Afas.Bvr.Core.Logging.ConsoleLogger" Collapsed="true">
+    <Position X="0.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logging\ConsoleLogger.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Afas.Bvr.Core.Logging.FileLogger" Collapsed="true">
+    <Position X="2.75" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logging\FileLogger.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.148" />
+  </Class>
+  <Class Name="Afas.Bvr.Core.BusinessLogic.BusinessValidations" Collapsed="true">
+    <Position X="0.5" Y="1.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAECAAAAAAAAAAAAIAAACAAAAAAAAAAAAAgAA=</HashCode>
+      <FileName>BusinessLogic\BusinessValidations.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Afas.Bvr.Core.Repository.RepositoryObject&lt;TKey&gt;" Collapsed="true">
+    <Position X="5" Y="1.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Repository\RepositoryObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Afas.Bvr.Core.Logging.ILogger">
+    <Position X="0.5" Y="2.25" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Logging\ILogger.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
