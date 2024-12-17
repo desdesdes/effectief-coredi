@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="FakeItEasy" Version="8.3.0" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="9.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="NUnit" Version="4.2.2" />
     <PackageReference Include="NUnit.Analyzers" Version="4.4.0">
@@ -22,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Afas.Bvr.Core\Afas.Bvr.Core.csproj" />
+    <ProjectReference Include="..\Afas.Bvr.Crm\Afas.Bvr.Crm.csproj" />
   </ItemGroup>
 
   <ItemGroup>

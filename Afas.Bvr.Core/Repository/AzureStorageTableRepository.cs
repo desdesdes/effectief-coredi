@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.Data.Tables;
+using Microsoft.Extensions.Options;
 
 namespace Afas.Bvr.Core.Repository;
 
@@ -8,11 +9,11 @@ public class AzureStorageTableRepository : Repository
 {
   readonly TableServiceClient _serviceClient;
 
-  public AzureStorageTableRepository(string endpoint, string sasSignature)
+  public AzureStorageTableRepository(IOptions<AzureStorageTableSettings> settings)
   {
     _serviceClient = new TableServiceClient(
-      new Uri(endpoint),
-      new AzureSasCredential(sasSignature));
+      new Uri(settings.Value.Endpoint),
+      new AzureSasCredential(settings.Value.SasSignature));
   }
 
   public override async Task Add<TValue>(TValue newItem)
@@ -48,7 +49,7 @@ public class AzureStorageTableRepository : Repository
       {
         tableEntity.Add(prop.Name, prop.GetValue(newItem));
       }
-    } 
+    }
 
     await tableClient.AddEntityAsync(tableEntity);
   }
@@ -72,7 +73,7 @@ public class AzureStorageTableRepository : Repository
 
     var tableClient = _serviceClient.GetTableClient(tableName);
 
-    var entity = await tableClient.GetEntityAsync<TableEntity>(id.ToString(), id.ToString());
+    var entity = await tableClient.GetEntityIfExistsAsync<TableEntity>(id.ToString(), id.ToString());
 
     if(!entity.HasValue)
     {
@@ -91,7 +92,7 @@ public class AzureStorageTableRepository : Repository
         continue;
       }
 
-      if(entity.Value.TryGetValue(prop.Name, out var value))
+      if(entity.Value!.TryGetValue(prop.Name, out var value))
       {
         if(prop.PropertyType == typeof(DateOnly) || prop.PropertyType == typeof(DateOnly?))
         {

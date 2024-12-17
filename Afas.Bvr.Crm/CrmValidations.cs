@@ -4,7 +4,7 @@ namespace Afas.Bvr.Crm;
 
 internal static partial class CrmValidations
 {
-  [GeneratedRegex(@"^(?! )[\p{L}\p{M}\s]+(?<! )$")]
+  [GeneratedRegex(@"^(?! )[0-9(), ]+(?<! )$")]
   private static partial Regex ValidatePhoneNumberRegEx();
 
   public static void ValidatePhoneNumber(string? input)

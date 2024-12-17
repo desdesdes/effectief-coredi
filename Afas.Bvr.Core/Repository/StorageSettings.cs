@@ -1,9 +1,7 @@
 ﻿namespace Afas.Bvr.Core.Repository;
 
-public class StorageSettings
+public class AzureStorageTableSettings
 {
-  public StorageType StorageType { get; set; }
-  public string? MsSqlConnectionString { get; set; }
-  public string? AzureStorageTableEndpoint { get; set; }
-  public string? AzureStorageTableSasSignature { get; set; }
+  public required string Endpoint { get; set; }
+  public required string SasSignature { get; set; }
 }

@@ -14,14 +14,12 @@ public class BusinessValidationsTests
   {
     if(success)
     {
-      Assert.DoesNotThrow(() =>
-              BusinessValidations.NotNullOrEmpty(input));
+      Assert.DoesNotThrow(() => BusinessValidations.NotNullOrEmpty(input));
 
     }
     else
     {
-      Assert.Throws(Is.TypeOf<Exception>(), () =>
-                    BusinessValidations.NotNullOrEmpty(input));
+      Assert.Throws<Exception>(() => BusinessValidations.NotNullOrEmpty(input));
     }
   }
 
@@ -47,7 +45,7 @@ public class BusinessValidationsTests
     }
     else
     {
-      Assert.Throws(Is.TypeOf<Exception>(), () =>
+      Assert.Throws<Exception>(() =>
                     BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrNumbersOrSpaces(input));
     }
   }
@@ -75,7 +73,7 @@ public class BusinessValidationsTests
     }
     else
     {
-      Assert.Throws(Is.TypeOf<Exception>(), () =>
+      Assert.Throws<Exception>(() =>
                     BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(input));
     }
   }
