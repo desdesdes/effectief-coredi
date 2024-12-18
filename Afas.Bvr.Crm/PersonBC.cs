@@ -17,7 +17,7 @@ public class PersonBC
 
   public async Task AddPerson(Person person)
   {
-    _logger?.LogInformation($"AddPerson '{person.Id}'");
+    _logger?.LogInformation($"PersonBC: AddPerson '{person.Id}'");
 
     BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(person.FirstName);
     BusinessValidations.NoStartOrEndSpacesAndOnlyLettersOrSpaces(person.LastName);
@@ -29,8 +29,15 @@ public class PersonBC
 
   public async Task DeletePerson(Guid id)
   {
-    _logger?.LogInformation($"DeletePerson '{id}'");
+    _logger?.LogInformation($"PersonBC: DeletePerson '{id}'");
 
     await _repository.Delete<Guid, Person>(id);
+  }
+
+  public async Task<Person?> GetPersonOrDefault(Guid id)
+  {
+    _logger?.LogInformation($"PersonBC: GetPersonOrDefault '{id}'");
+
+    return await _repository.GetOrDefault<Guid, Person>(id);
   }
 }

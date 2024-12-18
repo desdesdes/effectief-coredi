@@ -92,4 +92,15 @@ public class MSSqlRepository : Repository
     var parameters = new Dictionary<string, object> { { "Id", id } };
     await con.ExecuteAsync($"DELETE FROM {tableName} WHERE Id = @Id", parameters);
   }
+
+  public override async Task<TValue?> GetOrDefault<TKey, TValue>(TKey id) where TValue : class
+  {
+    await CreateTableIfNotExists<TValue>();
+
+    var tableName = typeof(TValue).Name;
+
+    using var con = new SqlConnection(_connectionString);
+    var result = await con.QuerySingleOrDefaultAsync<TValue>($"SELECT * FROM {tableName} WHERE Id = @Id", new { Id = id });
+    return result;
+  }
 }

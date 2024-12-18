@@ -50,4 +50,40 @@ public class AzureStorageTableRepository : Repository
 
     _ = await tableClient.DeleteEntityAsync(id.ToString(), id.ToString());
   }
+
+  public override async Task<TValue?> GetOrDefault<TKey, TValue>(TKey id) where TValue : class
+  {
+    var tableName = typeof(TValue).Name;
+
+    await _serviceClient.CreateTableIfNotExistsAsync(tableName);
+
+    var tableClient = _serviceClient.GetTableClient(tableName);
+
+    var entity = await tableClient.GetEntityAsync<TableEntity>(id.ToString(), id.ToString());
+
+    if(entity.Value == null)
+    {
+      return null;
+    }
+
+    var newItem = Activator.CreateInstance<TValue>();
+    newItem.Id = id;
+
+    var properties = typeof(TValue).GetProperties();
+    foreach(var prop in properties)
+    {
+      // skip the id
+      if(string.Equals(prop.Name, "ID", StringComparison.OrdinalIgnoreCase))
+      {
+        continue;
+      }
+
+      if(entity.Value.TryGetValue(prop.Name, out var value))
+      {
+        prop.SetValue(newItem, value);
+      }
+    }
+
+    return newItem;
+  }
 }

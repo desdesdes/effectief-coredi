@@ -18,6 +18,9 @@ internal class Program
     Console.WriteLine("AddPerson");
     await bc.AddPerson(new Person { Id=personId, FirstName="Bart", LastName="Vries", Email="bart.vries@afas.nl" });
 
+    Console.WriteLine("GetPersonOrDefault");
+    var retrieved = await bc.GetPersonOrDefault(personId);
+
     Console.WriteLine("DeletePerson");
     await bc.DeletePerson(personId);
 
