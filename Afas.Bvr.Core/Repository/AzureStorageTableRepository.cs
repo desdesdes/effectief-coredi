@@ -61,7 +61,7 @@ public class AzureStorageTableRepository : Repository
 
     var entity = await tableClient.GetEntityAsync<TableEntity>(id.ToString(), id.ToString());
 
-    if(entity.Value == null)
+    if(!entity.HasValue)
     {
       return null;
     }
