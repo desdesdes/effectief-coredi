@@ -332,3 +332,117 @@ Pas de constructor van `PersonBC` aan naar `public PersonBC(Repository repositor
 Compileer de code. De unit test gaan nu fout. Pas deze aan naar `NullLogger<PersonBC>.Instance`.
 
 Denk eraan dat je ook de logging zou kunnen testen in unit test.
+
+
+Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-library-authors) meer lezen over logging.
+
+# Na sheet 25: Overgeslagen
+
+## TimeProvider
+
+Een persoon kan alleen in het verleden geboren zijn. We vogen hiervoor een controle toe in `PersonBC`.
+
+```csharp
+if(person.BirthDate.HasValue && person.BirthDate.Value.ToDateTime(TimeOnly.MinValue) > DateTime.Now)
+{
+  throw new Exception("BirthDate cannot be in the future.");
+}
+```
+
+Als we dit gaan unit testen is het echter niet meer deterministisch. Op een andere tijd geeft hij andere output. We kunnen dit oplossen door een `ITimeProvider` te gebruiken.
+
+```csharp
+public PersonBC(Repository repository, ILogger<PersonBC> logger, TimeProvider timeProvider)
+{
+  _repository = repository;
+  _logger = logger;
+  _timeProvider = timeProvider;
+}
+
+if(person.BirthDate.HasValue && person.BirthDate.Value.ToDateTime(TimeOnly.MinValue) > _timeProvider.GetLocalNow())
+{
+  throw new Exception("BirthDate cannot be in the future.");
+}
+```
+
+Registreer de TimeProvider ook in `Program.cs`:
+
+```csharp
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+```
+
+Nu kunnen we wel een unit test toevoegen aan `PersonBCTests`.
+
+```csharp
+private FakeTimeProvider CreateTimeProvider()
+{
+  return new FakeTimeProvider(new DateTimeOffset(2024, 12, 19, 10, 15, 32, new TimeSpan(1, 0, 0)));
+}
+
+[Test()]
+public void AddPerson_WithBirthDateInFuture_ThrowExceptions()
+{
+  var testRepository = A.Fake<Repository>();
+
+  var bc = new PersonBC(testRepository, NullLogger<PersonBC>.Instance, CreateTimeProvider());
+
+  Assert.ThrowsAsync<Exception>(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries", BirthDate = new DateOnly(2025, 12, 19) }));
+}
+
+[Test()]
+public void AddPerson_WithBirthDateInPast_Succeeds()
+{
+  var testRepository = A.Fake<Repository>();
+
+  var bc = new PersonBC(testRepository, NullLogger<PersonBC>.Instance, CreateTimeProvider());
+
+  Assert.DoesNotThrowAsync(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries", BirthDate=new DateOnly(2023,12,19) }));
+  A.CallTo(() => testRepository.Add(A<Person>._)).MustHaveHappenedOnceExactly();
+}
+```
+
+Let op: je hebt een package reference naar `Microsoft.Extensions.TimeProvider.Testing` nodig.
+
+
+Build de code en fix de laatste fouten. Draai de tests.
+
+Tip:
+Je ziet in `PersonBCTests` dat je voor veel tests een basis werkende persoon entititeit nodig hebt. Je zou hier een helper functie voor kunnenn maken.
+
+
+```csharp
+private Person CreatePerson(Action<Person>? changes = null)
+{
+  var p = new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries" };
+  changes?.Invoke(p);
+  return p;
+}
+```
+
+Je kunt nu refactoren zodat je niet overal `new Person()` hoeft te schrijven.
+
+## Extension methodes op IServiceFactory
+
+Kijk naar de code in `Program.cs`. Hoe moet weten dat we `AddSingleton` moeten gebruiken om `AzureStorageTableRepository` te registreren? En hoe weet je dat je dan ook `AzureStorageTableSettings` nodig hebt?
+We kunnen dit makkelijker maken door een extension methode te maken op `IServiceCollection`.
+
+```csharp
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Afas.Bvr.Core.Repository;
+
+public static class IServiceCollectionExtensions
+{
+  public static IServiceCollection AddAzureStorageTableRepository(this IServiceCollection services, IConfiguration namedConfigurationSection)
+  {
+    services.Configure<AzureStorageTableSettings>(namedConfigurationSection);
+    services.AddSingleton<Repository, AzureStorageTableRepository>();
+    return services;
+  }
+}
+```
+
+Let op: je hebt een package reference naar `Microsoft.Extensions.Options.ConfigurationExtensions` nodig.
+
+Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors) meer lezen over options.
