@@ -46,7 +46,7 @@ var host = builder.Build();
 
 Nu kunnen de de unit test gaan schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren:
 ```csharp
-  [Test()]
+[Test()]
 public void AddPerson_FirstNameStartWithSpace_ThrowExceptions()
 {
 var testRepository = A.Fake<Repository>();
@@ -71,7 +71,7 @@ var testRepository = A.Fake<Repository>();
 var bc = new PersonBC(testRepository);
 
 Assert.DoesNotThrowAsync(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries" }));
-A.CallTo(() => testRepository.Add<Guid, Person>(A<Person>._)).MustHaveHappenedOnceExactly();
+A.CallTo(() => testRepository.Add<Person>(A<Person>._)).MustHaveHappenedOnceExactly();
 }
 ```
 
@@ -117,12 +117,12 @@ Creeer een unit test op `MSSqlRepository`.
 
 ```csharp
 [TestFixture()]
-[Category("Dep:MSSql")] // Let op, dit helpt om snel tests te filteren, omdat deze een sql dependency hebben
+[Property("Dependency", "MSSql")] // Let op, dit helpt om snel tests te filteren, omdat deze een sql dependency hebben
 public class MSSqlRepositoryTests
 {
   private const string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
 
-  class Demo : RepositoryObject<Guid>
+  class Demo : RepositoryObjectWithGuidId
   {
     public string? Name { get; set; }
   }
@@ -132,7 +132,7 @@ public class MSSqlRepositoryTests
   {
     var repo = new MSSqlRepository(_connectionString);
 
-    var result = await repo.GetOrDefault<Guid, Demo>(Guid.NewGuid());
+    var result = await repo.GetOrDefault<Demo>(Guid.NewGuid());
     Assert.That(result, Is.Null);
   }
 
@@ -144,9 +144,9 @@ public class MSSqlRepositoryTests
     var id = Guid.NewGuid();
 
     var demo = new Demo { Id = id, Name = "Test" };
-    await repo.Add<Guid, Demo>(demo);
+    await repo.Add<Demo>(demo);
 
-    var result = await repo.GetOrDefault<Guid, Demo>(id);
+    var result = await repo.GetOrDefault<Demo>(id);
     Assert.That(result, Is.Not.Null);
     Assert.That(result.Id, Is.EqualTo(id));
     Assert.That(result.Name, Is.EqualTo("Test"));
@@ -162,7 +162,7 @@ pas aan
 
 ```csharp
 [TestFixture()]
-[Category("Dep:MSSql")]
+[Property("Dependency", "MSSql")]
 public class MSSqlRepositoryTests
 ```
 
@@ -170,7 +170,7 @@ naar
 
 ```csharp
 [TestFixture()]
-[Category("Dep:MSSql")]// Let op, dit helpt om snel tests te filteren, omdat deze een sql dependency hebben
+[Property("Dependency", "MSSql")] // Let op, dit helpt om snel tests te filteren, omdat deze een sql dependency hebben
 public class MSSqlRepositoryTests : RepositoryTests
 {
   private readonly string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
@@ -192,7 +192,7 @@ Nu kunnen we snel en simpel de `AzureStorageTableRepository` tests toevoegen.
 
 ```csharp
 [TestFixture()]
-[Category("Dep:AzureStorageTable")]
+[Property("Dependency", "AzureStorageTable")]
 public class AzureStorageTableRepositoryTests : RepositoryTests
 {
   public override Repository CreateRepository() => new AzureStorageTableRepository(@"https://codedidemo.table.core.windows.net/", @"sv=2022-11-02&ss=t&srt=sco&sp=rwdlacu&se=2028-12-11T23:55:39Z&st=2024-12-11T15:55:39Z&spr=https&sig=e684bQmmbwMXysmGBlbIlA4h365DFVDlJa1nVVeINOk%3D");

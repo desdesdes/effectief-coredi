@@ -3,23 +3,22 @@
   <Class Name="Afas.Bvr.Core.Repository.Repository">
     <Position X="5" Y="2" Width="2.5" />
     <TypeIdentifier>
-      <HashCode>AAIAAAAAAAAAAAAAgAAAAAAAAAEAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAIAAAAAAAAAAAAAgAAgAAAAAAEAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Repository\Repository.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Core.Repository.AzureStorageTableRepository" Collapsed="true">
     <Position X="5" Y="4" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAIAAAAAAAAAAAAAAAAAAAAAAAEAAACAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAIAAAAAAAAAAAAAAAAgAAAAAAEAAACAAAAAAAAAAAA=</HashCode>
       <FileName>Repository\AzureStorageTableRepository.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Core.Repository.MSSqlRepository" Collapsed="true">
     <Position X="7.25" Y="4" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAIAAAAAAAAAQAAAAAAAAAAAAAEAQAAIAAAAAAAAAAA=</HashCode>
-      <FileName>Repository\MSSqlRepository.cs</FileName>
-      <NewMemberFileName>Repository\MsSqlRepository.cs</NewMemberFileName>
+      <HashCode>AAIAAAAAAAAAQAAAAAAgAAAAAAEAQAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Repository\MsSqlRepository.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Core.Logging.ConsoleLogger" Collapsed="true">
@@ -45,11 +44,11 @@
       <FileName>BusinessLogic\BusinessValidations.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Afas.Bvr.Core.Repository.RepositoryObject&lt;TKey&gt;" Collapsed="true">
-    <Position X="5" Y="1.25" Width="1.75" />
+  <Class Name="Afas.Bvr.Core.Repository.RepositoryObjectWithGuidId" Collapsed="true">
+    <Position X="5" Y="1.25" Width="2.5" />
     <TypeIdentifier>
       <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
-      <FileName>Repository\RepositoryObject.cs</FileName>
+      <FileName>Repository\RepositoryObjectWithGuidId.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Interface Name="Afas.Bvr.Core.Logging.ILogger">

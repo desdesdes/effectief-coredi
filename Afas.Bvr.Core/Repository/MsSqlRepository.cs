@@ -1,21 +1,33 @@
 ﻿using System.Text;
 using Microsoft.Data.SqlClient;
 using Dapper;
+using System.Data;
 
 namespace Afas.Bvr.Core.Repository;
 
 /// <threadsafety static="true" instance="true"/>
 public class MSSqlRepository : Repository
 {
+  private class SqlDateOnlyTypeHandler : SqlMapper.TypeHandler<DateOnly>
+  {
+    public override void SetValue(IDbDataParameter parameter, DateOnly date)
+        => parameter.Value = date.ToDateTime(new TimeOnly(0, 0));
+
+    public override DateOnly Parse(object value) => DateOnly.FromDateTime((DateTime)value);
+  }
+
   private readonly string _connectionString;
   private readonly HashSet<string> _tablesCreated = new(StringComparer.OrdinalIgnoreCase);
 
   public MSSqlRepository(string connectionString)
   {
+    // Add support for DateOnly and TimeOnly to Dapper
+    SqlMapper.AddTypeHandler(new SqlDateOnlyTypeHandler());
+
     _connectionString = connectionString;
   }
 
-  public override async Task Add<TKey, TValue>(TValue newItem)
+  public override async Task Add<TValue>(TValue newItem)
   {
     var tableName = typeof(TValue).Name;
 
@@ -69,7 +81,14 @@ public class MSSqlRepository : Repository
         continue;
       }
 
-      sb.Append($"{prop.Name} NVARCHAR(MAX), ");
+      if(prop.PropertyType == typeof(DateOnly) || prop.PropertyType == typeof(DateOnly?))
+      {
+        sb.Append($"{prop.Name} DATE, ");
+      }
+      else
+      {
+        sb.Append($"{prop.Name} NVARCHAR(MAX), ");
+      }
     }
 
     sb.Remove(sb.Length - 2, 2);
@@ -81,7 +100,7 @@ public class MSSqlRepository : Repository
     _tablesCreated.Add(tableName);
   }
 
-  public override async Task Delete<TKey, TValue>(TKey id)
+  public override async Task Delete<TValue>(Guid id)
   {
     await CreateTableIfNotExists<TValue>();
 
@@ -93,7 +112,7 @@ public class MSSqlRepository : Repository
     await con.ExecuteAsync($"DELETE FROM {tableName} WHERE Id = @Id", parameters);
   }
 
-  public override async Task<TValue?> GetOrDefault<TKey, TValue>(TKey id) where TValue : class
+  public override async Task<TValue?> GetOrDefault<TValue>(Guid id) where TValue : class
   {
     await CreateTableIfNotExists<TValue>();
 

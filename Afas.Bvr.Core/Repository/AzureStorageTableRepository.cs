@@ -15,7 +15,7 @@ public class AzureStorageTableRepository : Repository
       new AzureSasCredential(sasSignature));
   }
 
-  public override async Task Add<TKey, TValue>(TValue newItem)
+  public override async Task Add<TValue>(TValue newItem)
   {
     var tableName = typeof(TValue).Name;
 
@@ -34,13 +34,26 @@ public class AzureStorageTableRepository : Repository
         continue;
       }
 
-      tableEntity.Add(prop.Name, prop.GetValue(newItem));
+
+      if(prop.PropertyType == typeof(DateOnly) || prop.PropertyType == typeof(DateOnly?))
+      {
+        var dateValue = (DateOnly?)prop.GetValue(newItem);
+
+        if(dateValue.HasValue)
+        {
+          tableEntity.Add(prop.Name, dateValue.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        }
+      }
+      else
+      {
+        tableEntity.Add(prop.Name, prop.GetValue(newItem));
+      }
     } 
 
     await tableClient.AddEntityAsync(tableEntity);
   }
 
-  public override async Task Delete<TKey, TValue>(TKey id)
+  public override async Task Delete<TValue>(Guid id)
   {
     var tableName = typeof(TValue).Name;
 
@@ -51,7 +64,7 @@ public class AzureStorageTableRepository : Repository
     _ = await tableClient.DeleteEntityAsync(id.ToString(), id.ToString());
   }
 
-  public override async Task<TValue?> GetOrDefault<TKey, TValue>(TKey id) where TValue : class
+  public override async Task<TValue?> GetOrDefault<TValue>(Guid id) where TValue : class
   {
     var tableName = typeof(TValue).Name;
 
@@ -80,7 +93,19 @@ public class AzureStorageTableRepository : Repository
 
       if(entity.Value.TryGetValue(prop.Name, out var value))
       {
-        prop.SetValue(newItem, value);
+        if(prop.PropertyType == typeof(DateOnly) || prop.PropertyType == typeof(DateOnly?))
+        {
+          var dateValue = (DateTimeOffset?)value;
+
+          if(dateValue.HasValue)
+          {
+            prop.SetValue(newItem, new DateOnly(dateValue.Value.Year, dateValue.Value.Month, dateValue.Value.Day));
+          }
+        }
+        else
+        {
+          prop.SetValue(newItem, value);
+        }
       }
     }
 

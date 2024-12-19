@@ -6,21 +6,21 @@
       <Method Name="PersonBC" Hidden="true" />
     </Members>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAABAAAAAAAAAAAAAIAAAAAAAAAAAAAgAAEA=</HashCode>
+      <HashCode>AAAAAAAAAABAAAAAAAAAAQAAIAAAAAAAAAAAAAgAAEA=</HashCode>
       <FileName>PersonBC.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Crm.Person">
     <Position X="1" Y="2" Width="2.75" />
     <TypeIdentifier>
-      <HashCode>AAAAAEAAACAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAg=</HashCode>
+      <HashCode>AAAAAEAAACAAAAAAAAAAQAQAAAAAAAAAAAAAAAAAAAg=</HashCode>
       <FileName>Person.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Afas.Bvr.Core.Repository.RepositoryObject&lt;TKey&gt;">
-    <Position X="1.25" Y="4.75" Width="2.25" />
+  <Class Name="Afas.Bvr.Core.Repository.RepositoryObjectWithGuidId">
+    <Position X="1" Y="4.5" Width="2.75" />
     <Members>
-      <Method Name="RepositoryObject" Hidden="true" />
+      <Method Name="RepositoryObjectWithGuidId" Hidden="true" />
     </Members>
     <TypeIdentifier />
   </Class>

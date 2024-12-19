@@ -24,20 +24,20 @@ public class PersonBC
 
     CrmValidations.ValidatePhoneNumber(person.PhoneNumber);
 
-    await _repository.Add<Guid, Person>(person);
+    await _repository.Add(person);
   }
 
   public async Task DeletePerson(Guid id)
   {
     _logger?.LogInformation($"PersonBC: DeletePerson '{id}'");
 
-    await _repository.Delete<Guid, Person>(id);
+    await _repository.Delete<Person>(id);
   }
 
   public async Task<Person?> GetPersonOrDefault(Guid id)
   {
     _logger?.LogInformation($"PersonBC: GetPersonOrDefault '{id}'");
 
-    return await _repository.GetOrDefault<Guid, Person>(id);
+    return await _repository.GetOrDefault<Person>(id);
   }
 }
