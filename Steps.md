@@ -49,11 +49,9 @@ Nu kunnen de de unit test gaan schrijven, gebruik vs2022 `Create Unit Tests` opt
 [Test()]
 public void AddPerson_FirstNameStartWithSpace_ThrowExceptions()
 {
-var testRepository = A.Fake<Repository>();
+  var bc = new PersonBC(A.Fake<Repository>());
 
-var bc = new PersonBC(testRepository);
-
-Assert.ThrowsAsync<Exception>(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart" }));
+  Assert.ThrowsAsync<Exception>(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart" }));
 }
 ```
 We gebruiken hier `FakeItEasy` om een `Repository` te faken. Dit is een library die het makkelijk maakt om objecten te faken. We kunnen nu de test schrijven zonder dat we een echte `Repository` nodig hebben.
@@ -66,12 +64,12 @@ We voegen nu ook een test toe die controleert of de `AddPerson` methode van `Per
 [Test()]
 public void AddPerson_WithProperData_Succeeds()
 {
-var testRepository = A.Fake<Repository>();
+  var testRepository = A.Fake<Repository>();
 
-var bc = new PersonBC(testRepository);
+  var bc = new PersonBC(testRepository);
 
-Assert.DoesNotThrowAsync(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries" }));
-A.CallTo(() => testRepository.Add<Person>(A<Person>._)).MustHaveHappenedOnceExactly();
+  Assert.DoesNotThrowAsync(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries" }));
+  A.CallTo(() => testRepository.Add<Person>(A<Person>._)).MustHaveHappenedOnceExactly();
 }
 ```
 
@@ -382,9 +380,7 @@ private FakeTimeProvider CreateTimeProvider()
 [Test()]
 public void AddPerson_WithBirthDateInFuture_ThrowExceptions()
 {
-  var testRepository = A.Fake<Repository>();
-
-  var bc = new PersonBC(testRepository, NullLogger<PersonBC>.Instance, CreateTimeProvider());
+  var bc = new PersonBC(A.Fake<Repository>(), NullLogger<PersonBC>.Instance, CreateTimeProvider());
 
   Assert.ThrowsAsync<Exception>(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries", BirthDate = new DateOnly(2025, 12, 19) }));
 }
@@ -393,7 +389,6 @@ public void AddPerson_WithBirthDateInFuture_ThrowExceptions()
 public void AddPerson_WithBirthDateInPast_Succeeds()
 {
   var testRepository = A.Fake<Repository>();
-
   var bc = new PersonBC(testRepository, NullLogger<PersonBC>.Instance, CreateTimeProvider());
 
   Assert.DoesNotThrowAsync(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries", BirthDate=new DateOnly(2023,12,19) }));
@@ -446,3 +441,144 @@ public static class IServiceCollectionExtensions
 Let op: je hebt een package reference naar `Microsoft.Extensions.Options.ConfigurationExtensions` nodig.
 
 Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors) meer lezen over options.
+
+## HttpClient / HttpClientFactory 
+
+We willen een externe API aanroepen om het telefoonnummer te valideren. We kunnen dit doen met `HttpClient`. Het is te adviseren deze te registreren in de DI container. Het is best practices om `HttpClient` te hergebruiken om SocketException te voorkomen.
+
+```csharp
+public PersonBC(Repository repository, ILogger<PersonBC> logger, TimeProvider timeProvider, HttpClient httpClient)
+{
+  _repository = repository;
+  _logger = logger;
+  _timeProvider = timeProvider;
+  _httpClient = httpClient;
+}
+```
+
+Voeg een controle toe in `public async Task AddPerson(Person person)`
+
+```csharp
+if(!string.IsNullOrEmpty(person.PhoneNumber) &&
+  !await _httpClient.GetFromJsonAsync<bool>($"https://coredidemo.azurewebsites.net/phonenumbercheck.html?number={Uri.EscapeDataString(person.PhoneNumber)}"))
+{
+  throw new Exception("PhoneNumber cannot be in the future.");
+}
+```
+
+Registreer de HttpClient ook in `Program.cs`:
+
+```csharp
+builder.Services.AddHttpClient();
+```
+
+Let op: je hebt een package reference naar `Microsoft.Extensions.Http` nodig.
+
+Fix nu de fouten in de unit tests door overal `new HttpClient(A.Fake<HttpMessageHandler>())` te injecteren. Helaas werkt `A.Fake<HttpClient>()` niet omdat dit geen abstracte class is en dus de implementatie gewoon wordt aangeroepen.
+De `HttpClient` is simpelweg niet gemaakt om op deze manier ondervangen te worden in unit tests. Er is wel een andere manier beschikbaar.
+
+aak nu een unit test:
+
+```csharp
+[Test()]
+public void AddPerson_WithFilledValidPhoneNumber_Succeeds()
+{
+  var _mockMessageHandler = A.Fake<HttpMessageHandler>();
+
+  A.CallTo(_mockMessageHandler)
+  .WithReturnType<Task<HttpResponseMessage>>()
+  .Returns(new HttpResponseMessage
+  {
+    StatusCode = HttpStatusCode.OK,
+    Content = new StringContent("true")
+  });
+
+  var testRepository = A.Fake<Repository>();
+  var bc = new PersonBC(testRepository, NullLogger<PersonBC>.Instance, CreateTimeProvider(), new HttpClient(A.Fake<HttpMessageHandler>()));
+
+  Assert.DoesNotThrowAsync(() => bc.AddPerson(CreatePerson(p => p.PhoneNumber = "(06) 11")));
+  A.CallTo(() => testRepository.Add(A<Person>._)).MustHaveHappenedOnceExactly();
+}
+```
+
+Dit is een optie, zowel het injecteren van de hpptclient als het ondervangen daarvan is eigenlijk een externe dependency. Het zou dus mooer zijn om deze te ondervangen met abstract base class:
+
+```csharp
+public abstract class PhonenumberChecker
+{
+  public abstract Task<bool> CheckPhoneNumber(string? phoneNumber);
+}
+
+public class WebPhonenumberChecker : PhonenumberChecker
+{
+  private readonly HttpClient _httpClient;
+
+  public WebPhonenumberChecker(HttpClient httpClient)
+  {
+    _httpClient = httpClient;
+  }
+
+  public override async Task<bool> CheckPhoneNumber(string? phoneNumber)
+  {
+    return !string.IsNullOrEmpty(phoneNumber) &&
+      await _httpClient.GetFromJsonAsync<bool>($"https://coredidemo.azurewebsites.net/phonenumbercheck.html?number={Uri.EscapeDataString(phoneNumber)}");
+  }
+}
+```
+
+Pas nu de constructor weer aan naar:
+
+```csharp
+public PersonBC(Repository repository, ILogger<PersonBC> logger, TimeProvider timeProvider, PhonenumberChecker phonenumberChecker)
+```
+
+Deze oplossing is wat beter aangezien te tests van de httprequest nu bij de unit tests van de `WebPhonenumberChecker` zitten. Bij de `PersonBC` tests kunnen we nu een `PhonenumberChecker` makkelijk faken.
+
+De tests van `WebPhonenumberChecker` zuleln er nu als volgt uit zien:
+
+```csharp
+[TestFixture()]
+public class WebPhonenumberCheckerTests
+{
+  [Test()]
+  public void CheckPhoneNumber_WhenServiceReturnTrue_ReturnsTrue()
+  {
+    var _mockMessageHandler = A.Fake<HttpMessageHandler>();
+
+    A.CallTo(_mockMessageHandler)
+    .WithReturnType<Task<HttpResponseMessage>>()
+    .Returns(new HttpResponseMessage
+    {
+      StatusCode = HttpStatusCode.OK,
+      Content = new StringContent("true")
+    });
+
+    var checker = new WebPhonenumberChecker(new HttpClient(_mockMessageHandler));
+
+    Assert.That(() => checker.CheckPhoneNumber("(06) 11"), Is.True);
+  }
+
+  [Test()]
+  public void CheckPhoneNumber_WhenServiceReturnFalse_ReturnsFalse()
+  {
+    var _mockMessageHandler = A.Fake<HttpMessageHandler>();
+
+    A.CallTo(_mockMessageHandler)
+    .WithReturnType<Task<HttpResponseMessage>>()
+    .Returns(new HttpResponseMessage
+    {
+      StatusCode = HttpStatusCode.OK,
+      Content = new StringContent("false")
+    });
+
+    var checker = new WebPhonenumberChecker(new HttpClient(_mockMessageHandler));
+
+    Assert.That(() => checker.CheckPhoneNumber("(06) 11"), Is.False);
+  }
+}
+```
+
+Je kan [hier](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-net-http-httpclient) meer lezen over httpclient.
+
+## Meters
+
