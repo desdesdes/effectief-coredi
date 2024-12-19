@@ -11,6 +11,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afas.Bvr.Crm", "Afas.Bvr.Cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afas.Bvr.Core.Tests", "Afas.Bvr.Core.Tests\Afas.Bvr.Core.Tests.csproj", "{BDFE2394-1537-456A-96FE-BA4453A0918E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6E1A0DC1-9455-4725-A7A2-D207575D1D2C}"
+	ProjectSection(SolutionItems) = preProject
+		DI.pptx = DI.pptx
+		Steps.md = Steps.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
