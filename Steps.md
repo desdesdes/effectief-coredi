@@ -44,6 +44,8 @@ builder.Services.AddSingleton<PersonBC>();
 var host = builder.Build();
 ```
 
+Tip: Op `Host` en `WebApplication` vind je meerdere `Create` methodes, veel zijn deprecated. `Host.CreateApplicationBuilder()` of `WebApplication.CreateBuilder()` zijn de geadviseerde functies, zie [hier](https://github.com/dotnet/runtime/discussions/81090).
+
 Nu kunnen de de unit test gaan schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren:
 ```csharp
 [Test()]
@@ -336,6 +338,32 @@ Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-l
 
 # Na sheet 25: Overgeslagen
 
+## Extension methodes op IServiceFactory
+
+Kijk naar de code in `Program.cs`. Hoe moet weten dat we `AddSingleton` moeten gebruiken om `AzureStorageTableRepository` te registreren? En hoe weet je dat je dan ook `AzureStorageTableSettings` nodig hebt?
+We kunnen dit makkelijker maken door een extension methode te maken op `IServiceCollection`.
+
+```csharp
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Afas.Bvr.Core.Repository;
+
+public static class IServiceCollectionExtensions
+{
+  public static IServiceCollection AddAzureStorageTableRepository(this IServiceCollection services, IConfiguration namedConfigurationSection)
+  {
+    services.Configure<AzureStorageTableSettings>(namedConfigurationSection);
+    services.AddSingleton<Repository, AzureStorageTableRepository>();
+    return services;
+  }
+}
+```
+
+Let op: je hebt een package reference naar `Microsoft.Extensions.Options.ConfigurationExtensions` nodig.
+
+Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors) meer lezen over options.
+
 ## TimeProvider
 
 Een persoon kan alleen in het verleden geboren zijn. We vogen hiervoor een controle toe in `PersonBC`.
@@ -416,33 +444,7 @@ private Person CreatePerson(Action<Person>? changes = null)
 
 Je kunt nu refactoren zodat je niet overal `new Person()` hoeft te schrijven.
 
-## Extension methodes op IServiceFactory
-
-Kijk naar de code in `Program.cs`. Hoe moet weten dat we `AddSingleton` moeten gebruiken om `AzureStorageTableRepository` te registreren? En hoe weet je dat je dan ook `AzureStorageTableSettings` nodig hebt?
-We kunnen dit makkelijker maken door een extension methode te maken op `IServiceCollection`.
-
-```csharp
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace Afas.Bvr.Core.Repository;
-
-public static class IServiceCollectionExtensions
-{
-  public static IServiceCollection AddAzureStorageTableRepository(this IServiceCollection services, IConfiguration namedConfigurationSection)
-  {
-    services.Configure<AzureStorageTableSettings>(namedConfigurationSection);
-    services.AddSingleton<Repository, AzureStorageTableRepository>();
-    return services;
-  }
-}
-```
-
-Let op: je hebt een package reference naar `Microsoft.Extensions.Options.ConfigurationExtensions` nodig.
-
-Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors) meer lezen over options.
-
-## HttpClient / HttpClientFactory 
+## HttpClient 
 
 We willen een externe API aanroepen om het telefoonnummer te valideren. We kunnen dit doen met `HttpClient`. Het is te adviseren deze te registreren in de DI container. Het is best practices om `HttpClient` te hergebruiken om SocketException te voorkomen.
 
@@ -578,7 +580,94 @@ public class WebPhonenumberCheckerTests
 }
 ```
 
-Je kan [hier](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-net-http-httpclient) meer lezen over httpclient.
+Tip: Gebruik niet rechtstreeks `IHttpClientFactory`, deze is bedoelt als "onder water" object, maar gebruik daarvoor typed clients, [zie](https://www.milanjovanovic.tech/blog/the-right-way-to-use-httpclient-in-dotnet).
+
+Je kan [hier](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-net-http-httpclient) meer lezen over het gebruik van httpclient.
 
 ## Meters
 
+We willen een live mee kunnen kijken hoeveel personen er zijn toegevoegd in een perfmon achtige constructie. We kunnen dit doen met `Meters`.
+
+Voeg eerst een class toe die wel willen injecteren om de meters te gebruiken.
+
+```csharp
+public class CrmMeters
+{
+  private readonly Counter<int> _personsAdded;
+
+  public CrmMeters(IMeterFactory meterFactory)
+  {
+    var meter = meterFactory.Create("Afas.Bvr.Crm");
+    _personsAdded = meter.CreateCounter<int>("afas.bvr.crm.persons_added");
+  }
+
+  public void PersonsAdded(int quantity)
+  {
+    _personsAdded.Add(quantity);
+  }
+}
+```
+
+Injecteer de class in de `PersonBC`:
+
+```csharp
+public PersonBC(Repository repository, ILogger<PersonBC> logger, TimeProvider timeProvider, HttpClient httpClient, CrmMeters meters)
+{
+  _repository = repository;
+  _logger = logger;
+  _timeProvider = timeProvider;
+  _httpClient = httpClient;
+  _meters = meters;
+}
+```
+
+Voeg nu onder aan de `AddPerson` methode de code toe `meters.PersonsAdded(1);`.
+
+We moeten nu zorgen dat de `CrmMeters` geregistreerd wordt in de DI container en dat de meter een aantal maak wordt aangeroepen. Dit doen we in `Program.cs`:
+
+```csharp
+static async Task Main(string[] args)
+{
+  var builder = Host.CreateApplicationBuilder(args);
+
+  builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+  builder.Services.AddAzureStorageTableRepository(builder.Configuration);
+  builder.Services.AddSingleton<CrmMeters>();
+  builder.Services.AddSingleton<PersonBC>();
+  builder.Services.AddHttpClient();
+  builder.Services.AddSingleton<PhonenumberChecker, WebPhonenumberChecker>();
+
+  var host = builder.Build();
+
+  var bc = host.Services.GetRequiredService<PersonBC>();
+
+  var start = DateTime.UtcNow;
+  while(DateTime.UtcNow - start < TimeSpan.FromSeconds(10))
+  {
+    var personId = Guid.NewGuid();
+    Console.WriteLine("AddPerson");
+    await bc.AddPerson(new Person { Id = personId, FirstName = "Bart", LastName = "Vries", Email = "bart.vries@afas.nl" });
+
+    Console.WriteLine("GetPersonOrDefault");
+    var retrieved = await bc.GetPersonOrDefault(personId);
+
+    Console.WriteLine("DeletePerson");
+    await bc.DeletePerson(personId);
+  }
+
+  Console.WriteLine("Done!");
+}
+```
+
+Build het programma en draai de onderstaande command prompt
+
+```bat
+dotnet-counters monitor --counters Afas.Bvr.Crm -- ConsoleApp1 --SasSignature="sv=2022-11-02&ss=t&srt=sco&sp=rwdlacu&se=2028-12-11T23:55:39Z&st=2024-12-11T15:55:39Z&spr=https&sig=e684bQmmbwMXysmGBlbIlA4h365DFVDlJa1nVVeINOk%3D"
+```
+
+Tip: Omdat je nu met een prompt werkt worden de secrets niet gelezen, vandaar dat de `SasSignature` weer in de command line staat.
+Tip2: Microsoft heeft veel standaard counters welke vroeger in perfmon stonden. Haal `--counters Afas.Bvr.Crm` weg om deze te zien.
+
+Denk eraan dat er veel verschillende type counter beschrikbaar zijn, op dit moment Counter, UpDownCounter, ObservableCounter, ObservableUpDownCounter, Gauge, ObservableGauge en Histogram.
+
+Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation) meer lezen over het gebruik van Meters.
