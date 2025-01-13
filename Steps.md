@@ -1,4 +1,4 @@
-# Na sheet 9: Eerste stappen Core DI
+# Na sheet 8: Eerste stappen Core DI
 
 Basis implementatie van .net core DI
 ```csharp
@@ -12,11 +12,18 @@ builder.Services.AddSingleton<ILogger, ConsoleLogger>();
 builder.Services.AddSingleton<PersonBC>();
 
 var host = builder.Build();
+
+var bc = host.Services.GetRequiredService<PersonBC>();
+...
+await host.StopAsync();
 ```
 
-# Na sheet 13 en 14: PersonBC & CrmValidations unit tests
+# Na sheet 12: PersonBC & CrmValidations unit tests
+
+Nu kunnen de de unit test gaan schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren.
 
 Genereer een unit test file op `PersonBC`.
+
 ```csharp
 var bc = new PersonBC(new StorageSettings());
 ```
@@ -46,14 +53,14 @@ var host = builder.Build();
 
 Tip: Op `Host` en `WebApplication` vind je meerdere `Create` methodes, veel zijn deprecated. `Host.CreateApplicationBuilder()` of `WebApplication.CreateBuilder()` zijn de geadviseerde functies, zie [hier](https://github.com/dotnet/runtime/discussions/81090).
 
-Nu kunnen de de unit test gaan schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren:
+Pas de test als volgt aan:
 ```csharp
 [Test()]
-public void AddPerson_FirstNameStartWithSpace_ThrowExceptions()
+public void AddPerson_FirstNameStartWithSpace_ThrowsException()
 {
   var bc = new PersonBC(A.Fake<Repository>());
 
-  Assert.ThrowsAsync<Exception>(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart" }));
+  Assert.ThrowsAsync<Exception>(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries" }));
 }
 ```
 We gebruiken hier `FakeItEasy` om een `Repository` te faken. Dit is een library die het makkelijk maakt om objecten te faken. We kunnen nu de test schrijven zonder dat we een echte `Repository` nodig hebben.
@@ -78,7 +85,7 @@ public void AddPerson_WithProperData_Succeeds()
 Run de test en laat zien dat hij werkt. We gaan nu unit test voor `CrmValidations` schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren.
 
 Helaas geeft deze een foutmelding. We kunnen alleen publics testen. We willen de class  niet public maken omdat andere dan door andere kan worden aangeroepen. We kunnen de class wel internal maken/houden en de assembly zichtbaar maken voor de test assembly. Dit doen we door in de `AssemblyInfo.cs` van de `CrmValidations` project de volgende regel toe te voegen:
-`[assembly: InternalsVisibleTo("CrmValidations.Tests")]`
+`[assembly: InternalsVisibleTo("Afas.Bvr.Core.Tests")]`
 
 Nu kun je wel de de volgende test toevoegen. 
 
@@ -111,7 +118,7 @@ public class CrmValidationsTests
 }
 ```
 
-# Na sheet 15: Repository unit tests
+# Na sheet 14: Repository unit tests
 
 Creeer een unit test op `MSSqlRepository`.
 
@@ -205,7 +212,7 @@ Verander `var entity = await tableClient.GetEntityAsync<TableEntity>(id.ToString
 
 Run de tests opnieuw. Alles is gefixed.
 
-# Na sheet 17: Configuration in Core DI
+# Na sheet 16: Configuration in Core DI
 
 Let op: zoomen kan met WIN + '+' en zoom afsluiten met WIN + ESC.
 
@@ -271,7 +278,7 @@ Alleen de unit test compileerd niet meer, pas deze aan naar:
 ```csharp
 public override Repository CreateRepository()
 {
-  var set = Options.Create<AzureStorageTableSettings>(new AzureStorageTableSettings() {
+  var set = Options.Create<AzureStorageTableSettings>(Options.Create(new AzureStorageTableSettings() {
     Endpoint = @"https://codedidemo.table.core.windows.net/",
     SasSignature = @"sv=2022-11-02&ss=t&srt=sco&sp=rwdlacu&se=2028-12-11T23:55:39Z&st=2024-12-11T15:55:39Z&spr=https&sig=e684bQmmbwMXysmGBlbIlA4h365DFVDlJa1nVVeINOk%3D"
   });
@@ -280,7 +287,7 @@ public override Repository CreateRepository()
 }
 ```
 
-# Na sheet 21: Logging in Core DI
+# Na sheet 20: Logging in Core DI
 
 Verwijder de gehele `Logging` map.
 Pas `PersonBC` aan:
