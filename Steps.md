@@ -270,7 +270,7 @@ Open appsettings.json. We zien dat hierin een `SasSignature` staat. Dat is een g
 Knip de `SasSignature` regel uit appsettings.
 Druk op `Manage User Secrets` in de rechtermuisknop van het project.
 Plak de `SasSignature` regel in de `secrets.json` file.
-Run de code. Helaas werkt dit niet standaard in console apps. In asp.net core werkt het standaard wel. We moeten in de console app even toevoegen dat dit een development omgeving is.
+Run de code. Helaas werkt dit niet standaard in console apps. In asp.net core apps werkt het standaard wel. We moeten in de console app even [instellingen](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-9.0) toevoegen, zodat .net weet dat dit een development omgeving is.
 Ga naar de `Launch Profile` van het project en geef bij de `Environment variabele` in `DOTNET_ENVIRONMENT=Development`.
 Run de code.
 
@@ -486,7 +486,7 @@ Let op: je hebt een package reference naar `Microsoft.Extensions.Http` nodig.
 Fix nu de fouten in de unit tests door overal `new HttpClient(A.Fake<HttpMessageHandler>())` te injecteren. Helaas werkt `A.Fake<HttpClient>()` niet omdat dit geen abstracte class is en dus de implementatie gewoon wordt aangeroepen.
 De `HttpClient` is simpelweg niet gemaakt om op deze manier ondervangen te worden in unit tests. Er is wel een andere manier beschikbaar.
 
-aak nu een unit test:
+Maak nu een unit test:
 
 ```csharp
 [Test()]
@@ -510,24 +510,19 @@ public void AddPerson_WithFilledValidPhoneNumber_Succeeds()
 }
 ```
 
-Dit is een optie, zowel het injecteren van de hpptclient als het ondervangen daarvan is eigenlijk een externe dependency. Het zou dus mooer zijn om deze te ondervangen met abstract base class:
+Dit is een optie, zowel het injecteren van de hpptclient als het ondervangen daarvan is eigenlijk een externe dependency. Externe dependencies zou je het liefste kunnen faken. Dit doe je als volgt:
 
 ```csharp
-public abstract class PhonenumberChecker
-{
-  public abstract Task<bool> CheckPhoneNumber(string? phoneNumber);
-}
-
-public class WebPhonenumberChecker : PhonenumberChecker
+public class PhonenumberChecker
 {
   private readonly HttpClient _httpClient;
 
-  public WebPhonenumberChecker(HttpClient httpClient)
+  public PhonenumberChecker(HttpClient httpClient)
   {
     _httpClient = httpClient;
   }
 
-  public override async Task<bool> CheckPhoneNumber(string? phoneNumber)
+  public virtual async Task<bool> CheckPhoneNumber(string? phoneNumber)
   {
     return !string.IsNullOrEmpty(phoneNumber) &&
       await _httpClient.GetFromJsonAsync<bool>($"https://coredidemo.azurewebsites.net/phonenumbercheck.html?number={Uri.EscapeDataString(phoneNumber)}");
@@ -541,13 +536,13 @@ Pas nu de constructor weer aan naar:
 public PersonBC(Repository repository, ILogger<PersonBC> logger, TimeProvider timeProvider, PhonenumberChecker phonenumberChecker)
 ```
 
-Deze oplossing is wat beter aangezien te tests van de httprequest nu bij de unit tests van de `WebPhonenumberChecker` zitten. Bij de `PersonBC` tests kunnen we nu een `PhonenumberChecker` makkelijk faken.
+Deze oplossing is wat beter aangezien te tests van de httprequest nu bij de unit tests van de `PhonenumberChecker` zitten. Bij de `PersonBC` tests kunnen we nu een `PhonenumberChecker` makkelijk faken.
 
-De tests van `WebPhonenumberChecker` zuleln er nu als volgt uit zien:
+De tests van `PhonenumberChecker` zullen er nu als volgt uit zien:
 
 ```csharp
 [TestFixture()]
-public class WebPhonenumberCheckerTests
+public class PhonenumberCheckerTests
 {
   [Test()]
   public void CheckPhoneNumber_WhenServiceReturnTrue_ReturnsTrue()
@@ -562,7 +557,7 @@ public class WebPhonenumberCheckerTests
       Content = new StringContent("true")
     });
 
-    var checker = new WebPhonenumberChecker(new HttpClient(_mockMessageHandler));
+    var checker = new PhonenumberChecker(new HttpClient(_mockMessageHandler));
 
     Assert.That(() => checker.CheckPhoneNumber("(06) 11"), Is.True);
   }
@@ -580,7 +575,7 @@ public class WebPhonenumberCheckerTests
       Content = new StringContent("false")
     });
 
-    var checker = new WebPhonenumberChecker(new HttpClient(_mockMessageHandler));
+    var checker = new PhonenumberChecker(new HttpClient(_mockMessageHandler));
 
     Assert.That(() => checker.CheckPhoneNumber("(06) 11"), Is.False);
   }
@@ -590,6 +585,11 @@ public class WebPhonenumberCheckerTests
 Tip: Gebruik niet rechtstreeks `IHttpClientFactory`, deze is bedoelt als "onder water" object, maar gebruik daarvoor typed clients, [zie](https://www.milanjovanovic.tech/blog/the-right-way-to-use-httpclient-in-dotnet).
 
 Je kan [hier](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-net-http-httpclient) meer lezen over het gebruik van httpclient.
+
+Tip: Je ziet dat PhonenumberChecker geen abstract class of interface is, maar gewoon een implemetatie class met virtual functies. Dit is gedaan omdat in de runtime class er niet meerdere implementaties bestaan voor de PhonenumberChecker. 
+De enige plek waar we een andere implementatie willen is aan de unit testing kant. Daarom geen base class, maar virtual functies op de implementie class. Hierdoor kun je in de runtime ook makkelijker debuggen omdat F12 (Go to definition) dan gewoon naar de code springt een geen eextra abstractie of indirecte aan de runtime toevoegt.
+
+Tip: Als frameworks en het aantal BC's groeien kan het aantal classes welke je bij DI moet registreren erg groot worden. In veel van dergelijke frameworks zie je dat er een soort helper generic interface wordt gemaakt waarmee je auto registratie bij eerste noodzaak kan bereiken. Wil je ook iets dergelijks maken in je eigen framework neem dan contact op met BVR.
 
 ## Meters
 
@@ -673,7 +673,8 @@ dotnet-counters monitor --counters Afas.Bvr.Crm -- ConsoleApp1 --SasSignature="s
 ```
 
 Tip: Omdat je nu met een prompt werkt worden de secrets niet gelezen, vandaar dat de `SasSignature` weer in de command line staat.
-Tip2: Microsoft heeft veel standaard counters welke vroeger in perfmon stonden. Haal `--counters Afas.Bvr.Crm` weg om deze te zien.
+
+Tip: Microsoft heeft veel standaard counters welke vroeger in perfmon stonden. Haal `--counters Afas.Bvr.Crm` weg om deze te zien.
 
 Denk eraan dat er veel verschillende type counter beschrikbaar zijn, op dit moment Counter, UpDownCounter, ObservableCounter, ObservableUpDownCounter, Gauge, ObservableGauge en Histogram.
 
