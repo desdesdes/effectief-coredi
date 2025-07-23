@@ -11,7 +11,8 @@ builder.Services.AddSingleton<StorageSettings>(provider =>
 builder.Services.AddSingleton<ILogger, ConsoleLogger>();
 builder.Services.AddSingleton<PersonBC>();
 
-var host = builder.Build();
+using var host = builder.Build();
+await host.StartAsync();
 
 var bc = host.Services.GetRequiredService<PersonBC>();
 ...
@@ -48,7 +49,8 @@ builder.Services.AddSingleton<Repository>(provider =>
 builder.Services.AddSingleton<ILogger, ConsoleLogger>();
 builder.Services.AddSingleton<PersonBC>();
 
-var host = builder.Build();
+using var host = builder.Build();
+await host.StartAsync();
 ```
 
 Tip: Op `Host` en `WebApplication` vind je meerdere `Create` methodes, veel zijn deprecated. `Host.CreateApplicationBuilder()` of `WebApplication.CreateBuilder()` zijn de geadviseerde functies, zie [hier](https://github.com/dotnet/runtime/discussions/81090).
@@ -644,7 +646,8 @@ static async Task Main(string[] args)
   builder.Services.AddHttpClient();
   builder.Services.AddSingleton<PhonenumberChecker, WebPhonenumberChecker>();
 
-  var host = builder.Build();
+  using var host = builder.Build();
+  await host.StartAsync();
 
   var bc = host.Services.GetRequiredService<PersonBC>();
 
@@ -663,6 +666,7 @@ static async Task Main(string[] args)
   }
 
   Console.WriteLine("Done!");
+  await host.StopAsync();
 }
 ```
 
