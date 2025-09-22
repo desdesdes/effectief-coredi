@@ -246,7 +246,7 @@ Hoover over `CreateApplicationBuilder` in `Program.cs`. Je ziet dat IConfigurati
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.Configure<AzureStorageTableSettings>(builder.Configuration);
+builder.Services.AddOptions<AzureStorageTableSettings>().BindConfiguration(string.Empty);
 builder.Services.AddSingleton<Repository, AzureStorageTableRepository>();
 ```
 
@@ -264,9 +264,13 @@ public AzureStorageTableRepository(IOptions<AzureStorageTableSettings> settings)
 ```
 
 Run de code. Deze werkt weer.
+Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kan hier de esctie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class als `internal const string Section = "AzureStorageTableSettings";` te definieren.
+Tip 2: Achter `BindConfiguration()` kun je `ValidateDataAnnotations()` en/of `ValidateOnStart()` aanroepen om de settings te valideren.
+
 Ga naar de `Launch Profile` van het project en geef bij de `Command line arguments` in `/Endpoint="https://bvr.nl"`.
 Run de code. De code gaat fout omdat de command line argument de appsettings heeft overschreven.
 Verwijder de command line argument.
+
 Open appsettings.json. We zien dat hierin een `SasSignature` staat. Dat is een geheim en willen we niet in de `appsettings.json` hebben staan, omdat deze in git kan komen of we kunnen hem per ongeluk aan iemand geven als we de bin map delen. Microsoft heeft een speciale oplossing voor developers.
 
 Knip de `SasSignature` regel uit appsettings.
