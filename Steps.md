@@ -33,8 +33,8 @@ Vreemd `PersonBC` heeft helemaal geen afhnkelijkheid van `StorageSettings`, maar
 ```csharp
 public PersonBC(Repository repository, ILogger? logger = null)
 {
-_repository = repository;
-_logger = logger;
+  _repository = repository;
+  _logger = logger;
 }
 ```
 
@@ -341,6 +341,14 @@ Pas nu de aanroep op `_logger?.LogInformation` aan naar `_logger.LogAddPerson(id
 
 Tip: Naak de logger niet nullable. Het is beter om een `NullLogger.Instance` te gebruiken. 
 Pas de constructor van `PersonBC` aan naar `public PersonBC(Repository repository, ILogger<PersonBC> logger)`
+
+Tip: Indien je de LoggerMessages niet in een losse class opneemt, maar in als instantie methodes de class zelf, dan hoef je de logger niet als parameter mee te geven. De source generator pakt automatisch de ILogger class variabele op.
+
+Je kunt deze dan als volgt gebruiken:
+```csharp
+[LoggerMessage(Message = "Person added {id}", Level = LogLevel.Critical)]
+public partial void LogAddPerson(Guid id);
+```
 
 Compileer de code. De unit test gaan nu fout. Pas deze aan naar `NullLogger<PersonBC>.Instance`.
 
