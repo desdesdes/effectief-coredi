@@ -4,7 +4,7 @@ Basis implementatie van .net core DI
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddSingleton<StorageSettings>(provider =>
+builder.Services.AddSingleton(provider =>
     JsonSerializer.Deserialize<StorageSettings>(
     File.ReadAllText("appsettings.json"))!);
 
@@ -51,7 +51,7 @@ in `program.cs`:
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Services.AddSingleton<Repository>(provider =>
+builder.Services.AddSingleton(provider =>
     Repository.CreateRepository(JsonSerializer.Deserialize<StorageSettings>(
     File.ReadAllText("appsettings.json"))!));
 
@@ -89,7 +89,7 @@ public void AddPerson_WithProperData_Succeeds()
   var bc = new PersonBC(testRepository);
 
   Assert.DoesNotThrowAsync(() => bc.AddPerson(new Person() { Id = Guid.NewGuid(), FirstName = "Bart", LastName = "Vries" }));
-  A.CallTo(() => testRepository.Add<Person>(A<Person>._)).MustHaveHappenedOnceExactly();
+  A.CallTo(() => testRepository.Add(A<Person>._)).MustHaveHappenedOnceExactly();
 }
 ```
 
@@ -234,7 +234,8 @@ Applicaties zullen niet zomaar wisselen tussen providers. Zo willen we in de Con
 
 1. Verwijder de `CreateRepository` functie.
 2. Rename `StorageSettings` naar `AzureStorageTableSettings`.
-3. Verwijder `StorageType` en `MsSqlConnectionString`.
+4. Verwijder `StorageType` en `MsSqlConnectionString`.
+5. Maak de properties required.
 4. Rename `AzureStorageTableEndpoint` naar `Endpoint`.
 5. Rename `AzureStorageTableSasSignature` naar `SasSignature`.
 6. Pass `appsettings.json` aan met dezelfde aanpassing.
@@ -253,7 +254,7 @@ static async Task Main(string[] args)
 
 De code compileerd weer en werkt weer. 
 
-Hoover over `CreateApplicationBuilder` in `Program.cs`. Je ziet dat IConfiguration geladen worden word vanuit `appsettings.json`. We kunnen hier simpel gebruik van maken. 
+Druk op F1 op `CreateApplicationBuilder` in `Program.cs`. Je ziet dat IConfiguration geladen worden wordt vanuit `appsettings.json`. We kunnen hier simpel gebruik van maken. 
 
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
@@ -276,10 +277,10 @@ public AzureStorageTableRepository(IOptions<AzureStorageTableSettings> settings)
 ```
 
 Run de code. Deze werkt weer.
-Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kan hier de sectie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class als `internal const string Section = "AzureStorageTableSettings";` te definieren.
+Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kan hier de sectie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class als `public const string Section = "AzureStorageTableSettings";` te definieren.
 Tip 2: Achter `BindConfiguration()` kun je `ValidateDataAnnotations()` en/of `ValidateOnStart()` aanroepen om de settings te valideren.
 
-Ga naar de `Launch Profile` van het project en geef bij de `Command line arguments` in `/Endpoint="https://bvr.nl"`.
+Ga naar **Debug** > **ConsoleApp1 Debug Properties** en geef bij de `Command line arguments` in `/Endpoint="https://bvr.nl"`.
 Run de code. De code gaat fout omdat de command line argument de appsettings heeft overschreven.
 Verwijder de command line argument.
 
@@ -289,10 +290,10 @@ Knip de `SasSignature` regel uit appsettings.
 Druk op `Manage User Secrets` in de rechtermuisknop van het project.
 Plak de `SasSignature` regel in de `secrets.json` file.
 Run de code. Helaas werkt dit niet standaard in console apps. In asp.net core apps werkt het standaard wel. We moeten in de console app even [instellingen](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-9.0) toevoegen, zodat .net weet dat dit een development omgeving is.
-Ga naar de `Launch Profile` van het project en geef bij de `Environment variabele` in `DOTNET_ENVIRONMENT=Development`.
+Ga naar **Debug** > **ConsoleApp1 Debug Properties** en geef bij de `Environment variabele` in `DOTNET_ENVIRONMENT=Development`.
 Run de code.
 
-Alleen de unit test compileerd niet meer, pas deze aan naar:
+Alleen de unit test compileert niet meer, pas deze aan naar:
 ```csharp
 public override Repository CreateRepository()
 {
@@ -304,6 +305,8 @@ public override Repository CreateRepository()
   return new AzureStorageTableRepository(set);
 }
 ```
+
+Tip: Meestal eindigen we classes die we via IOptions injecteren met `Options`, dus `AzureStorageTableSettings` zou `AzureStorageTableOptions` kunnen heten.
 
 # Na sheet 20: Logging in Core DI
 
@@ -319,14 +322,15 @@ public class PersonBC
   public PersonBC(Repository repository, ILogger<PersonBC>? logger = null)
 ```
 
-Run de code. Deze werkt weer. Wat zijn de niet ingesprongen console regels? Dat zijn handmatig geschreven regels.
+Verwijder de regel met `builder.Services.AddSingleton<ILogger, ConsoleLogger>();` uit `Program.cs`.
+Run de code. Deze werkt weer. Wat zijn de niet ingesprongen console regels? Dat zijn handmatig geschreven regels via `Console.WriteLine`.
 
-Hoover weer over `CreateApplicationBuilder` in `Program.cs`. Je ziet dat er een `ILogger` wordt toegevoegd die logd naar console, debug en eventlog.
+Druk op F1 op `CreateApplicationBuilder` in `Program.cs`. Je ziet dat er een `ILogger` wordt toegevoegd die logd naar console, debug en eventlog.
 Deze is ook standaard via IConfiguration te configureren. Pas `AppSettings.json` aan:
 
 ```json
 {
-  "Endpoint": "https://codedidemo.table.core.windows.net/",
+  "MsSqlConnectionString": "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;",
   "Logging": {
     "LogLevel": {
       "Default": "Critical",
@@ -339,33 +343,27 @@ Deze is ook standaard via IConfiguration te configureren. Pas `AppSettings.json`
 
 Run de code. 
 
-Kijk even naar de methodes op de ILogger. Er is zelfs een source generator voor betere logging:
+Kijk even naar de methodes op de ILogger. Er is zelfs een source generator voor betere logging.
+
+- Maak de `PersonBC` class partial.
+- Voeg de voglende code aan `PersonBC` toe
 
 ```csharp
-internal static partial class ILoggerExtensions
-{
   [LoggerMessage(Message = "Person added {id}", Level = LogLevel.Critical)]
-  public static partial void LogAddPerson(this ILogger logger, Guid id);
+  public partial void LogAddPerson(Guid id);
 }
 ```
 
-Pas nu de aanroep op `_logger?.LogInformation` aan naar `_logger.LogAddPerson(id);`.
+Pas nu de aanroep op `_logger?.LogInformation` aan naar `LogAddPerson(id);`.
 
-Tip: Naak de logger niet nullable. Het is beter om een `NullLogger.Instance` te gebruiken. 
+Run de code. 
+
+Tip: Maak de logger niet nullable. Het is beter om een `NullLogger.Instance` te gebruiken in unit tests. 
 Pas de constructor van `PersonBC` aan naar `public PersonBC(Repository repository, ILogger<PersonBC> logger)`
 
-Tip: Indien je de LoggerMessages niet in een losse class opneemt, maar in als instantie methodes de class zelf, dan hoef je de logger niet als parameter mee te geven. De source generator pakt automatisch de ILogger class variabele op.
-
-Je kunt deze dan als volgt gebruiken:
-```csharp
-[LoggerMessage(Message = "Person added {id}", Level = LogLevel.Critical)]
-public partial void LogAddPerson(Guid id);
-```
-
-Compileer de code. De unit test gaan nu fout. Pas deze aan naar `NullLogger<PersonBC>.Instance`.
+De unit test gaan nu fout. Pas deze aan naar zodat deze `NullLogger<PersonBC>.Instance` meegeven als ILogger.
 
 Denk eraan dat je ook de logging zou kunnen testen in unit test.
-
 
 Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-library-authors) meer lezen over logging.
 
@@ -375,25 +373,32 @@ Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-l
 
 Kijk naar de code in `Program.cs`. Hoe moet weten dat we `AddSingleton` moeten gebruiken om `AzureStorageTableRepository` te registreren? En hoe weet je dat je dan ook `AzureStorageTableSettings` nodig hebt?
 We kunnen dit makkelijker maken door een extension methode te maken op `IServiceCollection`.
+Voeg de een nuget package referentie toe aan `Microsoft.Extensions.Options.ConfigurationExtensions` aan `Afas.Bvr.Core`.
+Voeg nu de volgende class toe:
 
 ```csharp
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Afas.Bvr.Core.Repository;
+namespace Afas.Bvr.Core.Storage;
 
-public static class IServiceCollectionExtensions
+public static class ServiceCollectionExtensions
 {
-  public static IServiceCollection AddAzureStorageTableRepository(this IServiceCollection services, IConfiguration namedConfigurationSection)
+  extension(IServiceCollection services)
   {
-    services.Configure<AzureStorageTableSettings>(namedConfigurationSection);
-    services.AddSingleton<Repository, AzureStorageTableRepository>();
-    return services;
+    public IServiceCollection AddAzureStorageTableRepository(IConfiguration namedConfigurationSection)
+    {
+      services.Configure<AzureStorageTableOptions>(namedConfigurationSection);
+      services.AddSingleton<Repository, AzureStorageTableRepository>();
+      return services;
+    }
   }
 }
 ```
-
-Let op: je hebt een package reference naar `Microsoft.Extensions.Options.ConfigurationExtensions` nodig.
+Verwijder de AddOptions en `.AddSingleton<Repository, AzureStorageTableRepository>()` uit  `Program.cs` en pas de cde aan naar aan naar:
+```csharp
+builder.Services.AddAzureStorageTableRepository(builder.Configuration);
+```
 
 Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/options-library-authors) meer lezen over options.
 
@@ -431,6 +436,7 @@ builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 ```
 
 Nu kunnen we wel een unit test toevoegen aan `PersonBCTests`.
+Let op: je hebt een package reference naar `Microsoft.Extensions.TimeProvider.Testing` nodig.
 
 ```csharp
 private FakeTimeProvider CreateTimeProvider()
@@ -456,9 +462,6 @@ public void AddPerson_WithBirthDateInPast_Succeeds()
   A.CallTo(() => testRepository.Add(A<Person>._)).MustHaveHappenedOnceExactly();
 }
 ```
-
-Let op: je hebt een package reference naar `Microsoft.Extensions.TimeProvider.Testing` nodig.
-
 
 Build de code en fix de laatste fouten. Draai de tests.
 
