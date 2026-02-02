@@ -264,7 +264,7 @@ public AzureStorageTableRepository(IOptions<AzureStorageTableSettings> settings)
 ```
 
 Run de code. Deze werkt weer.
-Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kan hier de esctie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class als `internal const string Section = "AzureStorageTableSettings";` te definieren.
+Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kan hier de sectie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class als `internal const string Section = "AzureStorageTableSettings";` te definieren.
 Tip 2: Achter `BindConfiguration()` kun je `ValidateDataAnnotations()` en/of `ValidateOnStart()` aanroepen om de settings te valideren.
 
 Ga naar de `Launch Profile` van het project en geef bij de `Command line arguments` in `/Endpoint="https://bvr.nl"`.
