@@ -1,4 +1,4 @@
-﻿namespace Afas.Bvr.Core.Repository;
+﻿namespace Afas.Bvr.Core.Storage;
 
 public class StorageSettings
 {

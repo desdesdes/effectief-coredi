@@ -1,6 +1,6 @@
 ﻿using Dapper;
 
-namespace Afas.Bvr.Core.Repository;
+namespace Afas.Bvr.Core.Storage;
 
 /// <threadsafety static="true" instance="true"/>
 public abstract class Repository

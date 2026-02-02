@@ -3,7 +3,7 @@ using Microsoft.Data.SqlClient;
 using Dapper;
 using System.Data;
 
-namespace Afas.Bvr.Core.Repository;
+namespace Afas.Bvr.Core.Storage;
 
 /// <threadsafety static="true" instance="true"/>
 public class MSSqlRepository : Repository

@@ -1,4 +1,4 @@
-﻿using Afas.Bvr.Core.Repository;
+﻿using Afas.Bvr.Core.Storage;
 
 namespace Afas.Bvr.Crm;
 

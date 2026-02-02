@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 using Afas.Bvr.Core.Logging;
-using Afas.Bvr.Core.Repository;
+using Afas.Bvr.Core.Storage;
 using Afas.Bvr.Crm;
 
 namespace ConsoleApp1;

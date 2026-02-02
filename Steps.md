@@ -21,14 +21,23 @@ await host.StopAsync();
 
 # Na sheet 12: PersonBC & CrmValidations unit tests
 
-Nu kunnen de de unit test gaan schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren.
-
-Genereer een unit test file op `PersonBC`.
-
+Nu kunnen de de unit test gaan schrijven
+- Voeg aan `Afas.Bvr.Core.Tests` een referentie toe naar `Afas.Bvr.Crm`.
+- Voeg aan `Afas.Bvr.Core.Tests` een class toe genaamd `PersonBCTests`.
+- Voeg de onderstaande code toe aan de `PersonBCTests` class.
 ```csharp
-var bc = new PersonBC(new StorageSettings());
+[TestFixture()]
+public class PersonBCTests
+{
+  [Test()]
+  public void AddPerson_FirstNameStartWithSpace_ThrowsException()
+  {
+    var bc = new PersonBC(new StorageSettings());
+  }
+}
 ```
-Vreemd `PersonBC` heeft helemaal geen afhnkelijkheid van `StorageSettings`, maar van `Repository`, laten we dat aanpassen.
+
+Vreemd `PersonBC` heeft helemaal geen afhankelijkheid van `StorageSettings`, maar van `Repository`, laten we dat aanpassen.
 
 ```csharp
 public PersonBC(Repository repository, ILogger? logger = null)
@@ -68,7 +77,7 @@ public void AddPerson_FirstNameStartWithSpace_ThrowsException()
 We gebruiken hier `FakeItEasy` om een `Repository` te faken. Dit is een library die het makkelijk maakt om objecten te faken. We kunnen nu de test schrijven zonder dat we een echte `Repository` nodig hebben.
 Aangezien de ILogger optional was kunnen we deze weglaten.
 
-Run de test en laat zien dat hij niet werkt. Pas ook de input aan naar `" Bart"` en laat zien dat hij dan wel werkt.
+Run de test en laat zien dat deze faalt. Pas ook de input aan naar `" Bart"` en laat zien dat hij dan wel werkt.
 
 We voegen nu ook een test toe die controleert of de `AddPerson` methode van `PersonBC` de `Add` methode van `Repository` aanroept.
 ```csharp
@@ -84,13 +93,9 @@ public void AddPerson_WithProperData_Succeeds()
 }
 ```
 
-Run de test en laat zien dat hij werkt. We gaan nu unit test voor `CrmValidations` schrijven, gebruik vs2022 `Create Unit Tests` optie om snel een class te genereren.
-
-Helaas geeft deze een foutmelding. We kunnen alleen publics testen. We willen de class  niet public maken omdat andere dan door andere kan worden aangeroepen. We kunnen de class wel internal maken/houden en de assembly zichtbaar maken voor de test assembly. Dit doen we door in de `AssemblyInfo.cs` van de `CrmValidations` project de volgende regel toe te voegen:
-`[assembly: InternalsVisibleTo("Afas.Bvr.Core.Tests")]`
-
-Nu kun je wel de de volgende test toevoegen. 
-
+Run de test en laat zien dat hij werkt. We gaan nu unit test voor `CrmValidations` schrijven.
+- Voeg aan `Afas.Bvr.Core.Tests` een class toe genaamd `CrmValidationsTests`.
+- Voeg aan de class de volgende code toe:
 ```csharp
 [TestFixture()]
 public class CrmValidationsTests
@@ -119,6 +124,11 @@ public class CrmValidationsTests
   }
 }
 ```
+
+Helaas geeft deze een foutmelding. We kunnen alleen publics testen. We willen de class niet public maken omdat andere dan door andere kan worden aangeroepen. We kunnen de class wel internal maken/houden en de assembly zichtbaar maken voor de test assembly. Dit doen we door een class genaamd `AssemblyInfo.cs` toe te voegen aan het `CrmValidations` project met de volgende regel:
+`[assembly: InternalsVisibleTo("Afas.Bvr.Core.Tests")]`
+
+Nu kun je wel de test wel uitvoeren.
 
 # Na sheet 14: Repository unit tests
 
@@ -173,6 +183,8 @@ pas aan
 [TestFixture()]
 [Property("Dependency", "MSSql")]
 public class MSSqlRepositoryTests
+{
+  private const string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
 ```
 
 naar 
@@ -195,7 +207,7 @@ public abstract class RepositoryTests
   public abstract Repository CreateRepository();
 ```
 
-Vervang nu de regels met `new MSSqlRepository(_connectionString)` naar `CreateRepository()`. Het testen werkt weer.
+Vervang nu de regels met `var repo = new MSSqlRepository(_connectionString);` naar `var repo = CreateRepository();`. Het testen werkt weer.
 
 Nu kunnen we snel en simpel de `AzureStorageTableRepository` tests toevoegen.
 
