@@ -17,11 +17,8 @@
       <FileName>Person.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Afas.Bvr.Core.Repository.RepositoryObjectWithGuidId">
-    <Position X="1" Y="4.5" Width="2.75" />
-    <Members>
-      <Method Name="RepositoryObjectWithGuidId" Hidden="true" />
-    </Members>
+  <Class Name="Afas.Bvr.Core.Storage.RepositoryObjectWithGuidId">
+    <Position X="1" Y="5" Width="2.75" />
     <TypeIdentifier />
   </Class>
   <Font Name="Segoe UI" Size="9" />
