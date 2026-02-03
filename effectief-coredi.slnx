@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docs/DI.pptx" />
+    <File Path="docs/DIY.md" />
+    <File Path="docs/Steps.md" />
+  </Folder>
+  <Project Path="Afas.Bvr.Core.Tests/Afas.Bvr.Core.Tests.csproj" />
+  <Project Path="Afas.Bvr.Core/Afas.Bvr.Core.csproj" />
+  <Project Path="Afas.Bvr.Crm/Afas.Bvr.Crm.csproj" />
+  <Project Path="ConsoleApp1/ConsoleApp1.csproj" />
+</Solution>

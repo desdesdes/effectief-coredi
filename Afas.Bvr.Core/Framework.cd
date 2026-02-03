@@ -24,28 +24,28 @@
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Core.Storage.Repository">
-    <Position X="6" Y="1.75" Width="4.25" />
+    <Position X="6" Y="2" Width="3.75" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAAAAAgAAgAAAAAAEAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Storage\Repository.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Core.Storage.MSSqlRepository" Collapsed="true">
-    <Position X="5.75" Y="4" Width="1.5" />
+    <Position X="6" Y="4" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAQAAAAAAgAAAAAAEAQAAIAAAAAAAAAAA=</HashCode>
       <FileName>Storage\MsSqlRepository.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="Afas.Bvr.Core.Storage.AzureStorageTableRepository" Collapsed="true">
-    <Position X="8.5" Y="4" Width="1.5" />
+    <Position X="8.25" Y="4" Width="1.5" />
     <TypeIdentifier>
       <HashCode>AAIAAAAAAAAAAAAAAAAgAAAAAAEAAACAAAAAAAAAAAA=</HashCode>
       <FileName>Storage\AzureStorageTableRepository.cs</FileName>
     </TypeIdentifier>
   </Class>
-  <Class Name="Afas.Bvr.Core.Storage.RepositoryObjectWithGuidId">
-    <Position X="11" Y="1.75" Width="2.25" />
+  <Class Name="Afas.Bvr.Core.Storage.RepositoryObjectWithGuidId" Collapsed="true">
+    <Position X="6" Y="1.25" Width="2.75" />
     <TypeIdentifier>
       <HashCode>AAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>Storage\RepositoryObjectWithGuidId.cs</FileName>
