@@ -1,5 +1,13 @@
 # DIY Dependency injection
 
+## Voorbereidingen
+
+De code gaat uit van een lokale sql instantie met de naam `.\\profitsqldev` waarop een database `codedidemo` is aangemaakt en de ingelogde gebruiker rechten heeft. 
+Maak deze database aan of pas de connection string in `appsettings.json` aan naar een database waar je toegang toe hebt.
+
+De code gaat tevens uit van een AzureStorage Tablestore account. Als je een gratis account hebt, dan kun je de connection string in `appsettings.json` aanpassen naar jouw account.
+Indien je er niet over beschikt, vraag je begeleider om een account.
+
 ## Introductie
 
 In deze sectie gaan we dieper in op Dependency Injection (DI) in .NET. DI is een ontwerpprincipe dat helpt bij het creëren van flexibele, herbruikbare en testbare code.
@@ -23,7 +31,7 @@ Daarnaast levert het framework ook een aantal veel gebruikte validaties mee (`Bu
 
 Voor de business logic bouwen we business componenten die gebruik maken van de verschillende lagen uit het framework. In dit voorbeeld hebben we een `PersonBC` die personsen kan toevoegen. Het `PersonBC` gebruikt de onderliggende `Person` object welke is afgeleid van de `RepositoryObjectWithGuidId` uit het framework, waardoor we deze via de respository kunnen benaderen in de storage.
 
-Dit zie je terug in het odnerstaande model.
+Dit zie je terug in het onderstaande model.
 ![CRM Implementatie Model](./img/crm.png)
 
 We zien dat de `PersonBC` gebruik maakt van de `ILogger` en `Repository` classes uit het framework. In de huidige implementatie worden deze afhankelijkheden direct in de constructor meegegeven. Dit zorgt ervoor dat je overal waar je functies op de BC wilt aanroepen deze logger en storage settings moet kunnen opvragen. 
@@ -79,20 +87,20 @@ De core DI container biedt de volgende voordelen t.o.v. de oude implementatie:
 - Singletons (bv ILogger) zijn geregistreerd in de host en dus per host.
   - Meerdere unit tests = hosts per unit test, dus steeds een schone situatie.
 - Constructor dependency injection
-  - Het DI framework lost automatisch de dependencies op en injecteert deze in de constructor.
-  - Extra dependency, dan alleen constructor uitbreiden
+  - Het DI-framework lost automatisch de dependencies op en injecteert deze in de constructor.
+  - Extra dependency? Dan alleen constructor uitbreiden
   - Circulaire dependency worden automatisch gedetecteerd en daarmee voorkomen.
   - Cleanup automatisch gemanaged (IDisposable, IAsyncDisposable wordt automatisch aangeroepen)
 
 ## Core DI levensduur en delen
 
-Core DI ent verschillende levensduur opties voor geregistreerde services. Deze bepalen hoe lang een instantie van een service wordt bewaard en gedeeld binnen de applicatie.
+Core DI kent verschillende levensduur opties voor geregistreerde services. Deze bepalen hoe lang een instantie van een service wordt bewaard en gedeeld binnen de applicatie.
 
 |  | asp.net core | andere |
 |---|---|---|
-| Singleton | Elke plaats waar hij geïnjecteerd dezelfde instantie. | Elke plaats waar hij geïnjecteerd dezelfde instantie. |
-| Transient | Elke plaats waar hij geïnjecteerd word een nieuwe instantie. | Elke plaats waar hij geïnjecteerd word een nieuwe instantie. |
-| Scoped | Elke plaats waar hij geïnjecteerd word dezelfde instantie per web request, maar niet gedeeld over webrequests. | Elke plaats waar hij geïnjecteerd word dezelfde instantie per scope, maar niet gedeeld over scopes. (Framework) developer moet zelf scopes creëren anders singleton. |
+| Singleton | Elke plaats waar hij geïnjecteerd wordt dezelfde instantie. | Elke plaats waar hij geïnjecteerd wordt dezelfde instantie. |
+| Transient | Elke plaats waar hij geïnjecteerd wordt een nieuwe instantie. | Elke plaats waar hij geïnjecteerd wordt een nieuwe instantie. |
+| Scoped | Elke plaats waar hij geïnjecteerd wordt dezelfde instantie per web request, maar niet gedeeld over webrequests. | Elke plaats waar hij geïnjecteerd wordt dezelfde instantie per scope, maar niet gedeeld over scopes. (Framework) developer moet zelf scopes creëren anders singleton. |
 
 Let op: Scoped wil je dus vrijwel nooit gebruiken, slechts in specifieke gevallen als de contexten ook helemaal duidelijk zijn, zoals bij asp.net core.
 
@@ -107,13 +115,13 @@ Let op: Scoped wil je dus vrijwel nooit gebruiken, slechts in specifieke gevalle
 - V = veilig
 - X = niet veilig
 
-Met parallel safe wordt bedoeld dat de instantie methodes van het object gelijktijdig door meerdere threads kunnen worden aangeroepen zonder dat dit problemen oplevert en dat er meerdere async methodes aangeroepen mogen worden voordat de andere async afgehandeld is.
+Met parallel safe wordt bedoeld dat de instantiemethodes van het object gelijktijdig door meerdere threads kunnen worden aangeroepen zonder dat dit problemen oplevert en dat er meerdere async-methodes aangeroepen mogen worden voordat de andere async afgehandeld is.
 
 ### Uitleg
 
-- Singleton services moeten alleen afhankelijk zijn van andere singleton services. Dit komt omdat singleton services gedeeld worden over de gehele levensduur van de applicatie en dus ook over meerdere threads/async calls. De instantie methodes van het object moeten dus parallel zijn.
+- Singleton services moeten alleen afhankelijk zijn van andere singleton services. Dit komt omdat singleton services gedeeld worden over de gehele levensduur van de applicatie en dus ook over meerdere threads/async calls. De instantiemethodes van het object moeten dus parallel safe zijn.
 - Scoped services kunnen afhankelijk zijn van singleton en andere scoped services, maar niet van transient services. Dit komt omdat scoped services gedeeld worden binnen een bepaalde scope (zoals een web request). Afhankelijk van de implementatie van de scope kan het zijn dat meerdere threads/async calls binnen dezelfde scope plaatsvinden, waardoor er gedeelde staat kan ontstaan. Hoewel asp.net core dit standaard niet doet, kan een framework developer ervoor kiezen om dit wel te doen. Let dus goed op de documentatie van het framework dat je gebruikt.
-- Transient services kunnen afhankelijk zijn van singleton, scoped en andere transient services. Dit komt omdat transient services elke keer een nieuwe instantie creëren wanneer ze worden opgevraagd. Een transient service wordt dus nooit gedeeld, waardoor er geen problemen ontstaan met gedeelde staat en je instantie methodes dus ook niet parallel safe hoeft te bouwen.
+- Transient services kunnen afhankelijk zijn van singleton, scoped en andere transient services. Dit komt omdat transient services elke keer een nieuwe instantie creëren wanneer ze worden opgevraagd. Een transient service wordt dus nooit gedeeld, waardoor er geen problemen ontstaan met gedeelde staat en je instantiemethodes dus ook niet parallel safe hoeft te bouwen.
 
 Voer de stappen uit in het hoofdstuk **Na sheet 12: PersonBC & CrmValidations unit tests** van [Steps.md](Steps.md#na-sheet-12-personbc--crmvalidations-unit-tests)
 

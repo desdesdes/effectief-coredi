@@ -21,7 +21,7 @@ await host.StopAsync();
 
 # Na sheet 12: PersonBC & CrmValidations unit tests
 
-Nu kunnen de de unit test gaan schrijven
+Nu kunnen we de unit tests gaan schrijven
 - Voeg aan `Afas.Bvr.Core.Tests` een referentie toe naar `Afas.Bvr.Crm`.
 - Voeg aan `Afas.Bvr.Core.Tests` een class toe genaamd `PersonBCTests`.
 - Voeg de onderstaande code toe aan de `PersonBCTests` class.
@@ -94,7 +94,7 @@ public void AddPerson_WithProperData_Succeeds()
 }
 ```
 
-Run de test en laat zien dat hij werkt. We gaan nu unit test voor `CrmValidations` schrijven.
+Run de test en laat zien dat hij werkt. We gaan nu unit tests voor `CrmValidations` schrijven.
 - Voeg aan `Afas.Bvr.Core.Tests` een class toe genaamd `CrmValidationsTests`.
 - Voeg aan de class de volgende code toe:
 ```csharp
@@ -135,7 +135,7 @@ Nu kun je wel de test wel uitvoeren.
 
 # Na sheet 14: Repository unit tests
 
-Creeer een unit test op `MSSqlRepository`.
+Creëer een unit test op `MSSqlRepository`.
 
 ```csharp
 [TestFixture()]
@@ -233,8 +233,8 @@ Run de tests opnieuw. Alles is gefixed.
 
 Let op: zoomen kan met WIN + '+' en zoom afsluiten met WIN + ESC.
 
-Applicaties zullen niet zomaar wisselen tussen providers. Zo willen we in de Console app eigenlijk alleen de `AzureStorageTableRepository` implemeteren.
-De complete `StorageSettings` willen we ook laten vervallen en een betere oplossing creeren.
+Applicaties zullen niet zomaar wisselen tussen providers. Zo willen we in de Console app eigenlijk alleen de `AzureStorageTableRepository` implementeren.
+De complete `StorageSettings` willen we ook laten vervallen en een betere oplossing creëren.
 
 1. Verwijder de `CreateRepository` functie.
 2. Rename `StorageSettings` naar `AzureStorageTableSettings`.
@@ -242,8 +242,8 @@ De complete `StorageSettings` willen we ook laten vervallen en een betere oploss
 5. Maak de properties required.
 4. Rename `AzureStorageTableEndpoint` naar `Endpoint`.
 5. Rename `AzureStorageTableSasSignature` naar `SasSignature`.
-6. Pass `appsettings.json` aan met dezelfde aanpassing.
-6. Pas de constuctor van `AzureStorageTableRepository` aan naar `public AzureStorageTableRepository(AzureStorageTableSettings settings)` en maak de functie compilerend.
+6. Pas `appsettings.json` aan met dezelfde aanpassing.
+6. Pas de constructor van `AzureStorageTableRepository` aan naar `public AzureStorageTableRepository(AzureStorageTableSettings settings)` en maak de functie compilerend.
 7. Pas de `Program.cs` aan naar:
 
 ```csharp
@@ -256,7 +256,7 @@ static async Task Main(string[] args)
       File.ReadAllText("appsettings.json"))!));
 ```
 
-De code compileerd weer en werkt weer. 
+De code compileert weer en werkt weer. 
 
 Druk op F1 op `CreateApplicationBuilder` in `Program.cs`. Je ziet dat IConfiguration geladen worden wordt vanuit `appsettings.json`.
 We kunnen hier simpel gebruik van maken. 
@@ -282,8 +282,8 @@ public AzureStorageTableRepository(IOptions<AzureStorageTableSettings> settings)
 ```
 
 Run de code. Deze werkt weer.
-Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kan hier de sectie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class 
-als `public const string Section = "AzureStorageTableSettings";` te definieren.
+Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kunt hier de sectie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class 
+als `public const string Section = "AzureStorageTableSettings";` te definiëren.
 
 Tip 2: Achter `BindConfiguration()` kun je `ValidateDataAnnotations()` en/of `ValidateOnStart()` aanroepen om de settings te valideren.
 
@@ -353,10 +353,10 @@ Deze is ook standaard via IConfiguration te configureren. Pas `AppSettings.json`
 
 Run de code. 
 
-Kijk even naar de methodes op de ILogger. Er is zelfs een source generator voor betere logging.
+Kijk even naar de methodes op de `ILogger`. Er is zelfs een source generator voor betere logging.
 
 - Maak de `PersonBC` class partial.
-- Voeg de voglende code aan `PersonBC` toe
+- Voeg de volgende code aan `PersonBC` toe
 
 ```csharp
   [LoggerMessage(Message = "Person added {id}", Level = LogLevel.Critical)]
@@ -371,7 +371,7 @@ Run de code.
 Tip: Maak de logger niet nullable. Het is beter om een `NullLogger.Instance` te gebruiken in unit tests. 
 Pas de constructor van `PersonBC` aan naar `public PersonBC(Repository repository, ILogger<PersonBC> logger)`
 
-De unit test gaan nu fout. Pas deze aan naar zodat deze `NullLogger<PersonBC>.Instance` meegeven als ILogger.
+De unit tests gaan nu fout. Pas deze aan zodat deze `NullLogger<PersonBC>.Instance` meegeeft als `ILogger`.
 
 Denk eraan dat je ook de logging zou kunnen testen in unit test.
 
@@ -384,7 +384,7 @@ Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-l
 Kijk naar de code in `Program.cs`. Hoe moet weten dat we `AddSingleton` moeten gebruiken om `AzureStorageTableRepository` te registreren? 
 En hoe weet je dat je dan ook `AzureStorageTableSettings` nodig hebt?
 We kunnen dit makkelijker maken door een extension methode te maken op `IServiceCollection`.
-Voeg de een nuget package referentie toe aan `Microsoft.Extensions.Options.ConfigurationExtensions` aan `Afas.Bvr.Core`.
+Voeg een nuget package referentie toe aan `Microsoft.Extensions.Options.ConfigurationExtensions` aan `Afas.Bvr.Core`.
 Voeg nu de volgende class toe:
 
 ```csharp
@@ -406,7 +406,7 @@ public static class ServiceCollectionExtensions
   }
 }
 ```
-Verwijder de AddOptions en `.AddSingleton<Repository, AzureStorageTableRepository>()` uit  `Program.cs` en pas de cde aan naar aan naar:
+Verwijder de AddOptions en `.AddSingleton<Repository, AzureStorageTableRepository>()` uit `Program.cs` en pas de code aan naar:
 ```csharp
 builder.Services.AddAzureStorageTableRepository(builder.Configuration);
 ```
@@ -415,7 +415,7 @@ Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/options-l
 
 ## TimeProvider
 
-Een persoon kan alleen in het verleden geboren zijn. We vogen hiervoor een controle toe in `PersonBC`.
+Een persoon kan alleen in het verleden geboren zijn. We voegen hiervoor een controle toe in `PersonBC`.
 
 ```csharp
 if(person.BirthDate.HasValue && person.BirthDate.Value.ToDateTime(TimeOnly.MinValue) > DateTime.Now)
@@ -478,7 +478,7 @@ public void AddPerson_WithBirthDateInPast_Succeeds()
 Build de code en fix de laatste fouten. Draai de tests.
 
 Tip:
-Je ziet in `PersonBCTests` dat je voor veel tests een basis werkende persoon entititeit nodig hebt. Je zou hier een helper functie voor kunnen maken.
+Je ziet in `PersonBCTests` dat je voor veel tests een basis werkende persoon entiteit nodig hebt. Je zou hier een helper functie voor kunnen maken.
 
 
 ```csharp
@@ -526,8 +526,8 @@ Run de code. De code werkt niet omdat de `SasSignature` leeg is. Pas de datum ve
 ## HttpClient 
 
 
-We willen een externe API aanroepen om te controleren of of de persoon niet bestaat in een extern systeem. We kunnen dit doen met `HttpClient`.
-Het is te adviseren deze te registreren in de DI container. Het is best practices om `HttpClient` te hergebruiken om te voorkomen dat we uit connencties lopen.
+We willen een externe API aanroepen om te controleren of de persoon niet bestaat in een extern systeem. We kunnen dit doen met `HttpClient`.
+Het is te adviseren deze te registreren in de DI container. Het is best practice om `HttpClient` te hergebruiken om te voorkomen dat we uit connecties lopen.
 
 ```csharp
 public PersonBC(Repository repository, ILogger<PersonBC> logger, TimeProvider timeProvider, HttpClient httpClient)
@@ -558,12 +558,12 @@ builder.Services.AddHttpClient();
 ```
 
 Om de unit test te fixen zou je `A.Fake<HttpClient>()` willen gebruiken.
-Helaas zijn de methodes op HttpClient niet virtueel en dus de implementatie gewoon wordt aangeroepen. 
+Helaas zijn de methodes op `HttpClient` niet virtueel en dus wordt de implementatie gewoon aangeroepen. 
 De `HttpClient` is simpelweg niet gemaakt om op deze manier ondervangen te worden in unit tests. Er is wel een andere manier beschikbaar.
 
 Wel kunnen we dit oplossen door `new HttpClient(A.Fake<HttpMessageHandler>())` te injecteren.
 
-Fix nu een unit test door de onderstaande functie toe te voegen en `CreateHttpClient()` aan te roepen bij `new PersonBC(`:
+Fix nu de unit test door de onderstaande functie toe te voegen en `CreateHttpClient()` aan te roepen bij `new PersonBC(`:
 
 ```csharp
 private HttpClient CreateHttpClient()
@@ -657,33 +657,34 @@ public class CrmDependenciesTests
   {
     var depManager = new CrmDependencies(CreateHttpClient());
     Assert.DoesNotThrowAsync(() => depManager.ValidateExternalUserNameAsync("Bart", "Vries"));
-  }
+}  }
 }
 ```
 
-Tip: Gebruik niet rechtstreeks `IHttpClientFactory`, deze is bedoelt als "onder water" object, maar gebruik daarvoor typed clients, 
+Tip: Gebruik niet rechtstreeks `IHttpClientFactory`, deze is bedoeld als "onder water" object, maar gebruik daarvoor typed clients, 
 [zie](https://www.milanjovanovic.tech/blog/the-right-way-to-use-httpclient-in-dotnet).
 
-Je kan [hier](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-net-http-httpclient) meer lezen over het gebruik van httpclient.
+Je kunt [hier](https://learn.microsoft.com/en-us/dotnet/fundamentals/runtime-libraries/system-net-http-httpclient) meer lezen over het gebruik van `HttpClient`.
 
-Tip: Je ziet dat CrmDependencies geen abstract class of interface is, maar gewoon een implementatie class met virtual functies. 
-Dit is gedaan omdat in de runtime er niet meerdere implementaties bestaan voor de CrmDependencies. 
 
-De enige plek waar we een andere implementatie willen is aan de unit testing kant. Daarom geen base class, maar virtual functies op de implementie class. 
-Hierdoor kun je in de runtime ook makkelijker debuggen omdat F12 (Go to definition) dan gewoon naar de code springt een geen extra abstractie of indirecte aan de 
+Tip: Je ziet dat `CrmDependencies` geen abstract class of interface is, maar gewoon een implementatie class met virtual functies. 
+Dit is gedaan omdat er in de runtime niet meerdere implementaties bestaan voor de `CrmDependencies`. 
+
+De enige plek waar we een andere implementatie willen is aan de unit testing kant. Daarom geen base class, maar virtual functies op de implementatie class. 
+Hierdoor kun je in de runtime ook makkelijker debuggen omdat F12 (Go to definition) dan gewoon naar de code springt en geen extra abstractie of indirectie aan de 
 runtime toevoegt. Voeg geen indirectie toe zonder dat dit echt nodig is.
 
 Tip: Als frameworks en het aantal BC's groeien kan het aantal classes welke je bij DI moet registreren erg groot worden. Dit is niet altijd wenselijk en in grotere 
-frameworks zie je dan ook dat er een aanvulling op het standaard di framework worden gebouwd om hierin te voorzien. Dit kan bijvoorbeeld door BC altijd te constructen 
-via een factory class welke constructor parameters controleeert op een attribuut of interface en deze vervolgens via `ActivatorUtilities.CreateInstance(`.
+frameworks zie je dan ook dat er een aanvulling op het standaard DI framework wordt gebouwd om hierin te voorzien. Dit kan bijvoorbeeld door BC altijd te construeren 
+via een factory class welke constructor parameters controleert op een attribuut of interface en deze vervolgens via `ActivatorUtilities.CreateInstance(`.
 
 Wil je ook iets dergelijks maken in je eigen framework overleg dan altijd met specialisten.
 
 ## Meters
 
-We willen een live mee kunnen kijken hoeveel personen er zijn toegevoegd in een perfmon achtige constructie. We kunnen dit doen met `Meters`.
+We willen live mee kunnen kijken hoeveel personen er zijn toegevoegd in een perfmon-achtige constructie. We kunnen dit doen met `Meters`.
 
-Voeg eerst een class toe aan `Afas.Bvr.Crm` die wel willen injecteren om de meters te gebruiken.
+Voeg eerst een class toe aan `Afas.Bvr.Crm` die we willen injecteren om de meters te gebruiken.
 
 ```csharp
 public class CrmMeters
@@ -734,7 +735,7 @@ for (int i = 0; i < 50; i++)
 }
 ```
 
-Build en lat het programma lopen. Terwijl het programma loopt open je een command prompt en voer je de volgende commando's uit om de meters te bekijken:
+Build en laat het programma lopen. Terwijl het programma loopt open je een command prompt en voer je de volgende commando's uit om de meters te bekijken:
 
 ```cmd
 dotnet tool install --global dotnet-counters
@@ -746,4 +747,4 @@ Tip: Microsoft heeft veel standaard counters welke vroeger in perfmon stonden. H
 Denk eraan dat er veel verschillende type counter beschrikbaar zijn, op dit moment Counter, UpDownCounter, ObservableCounter, ObservableUpDownCounter, Gauge, 
 ObservableGauge en Histogram.
 
-Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation) meer lezen over het gebruik van Meters.
+Je kunt [hier](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation) meer lezen over het gebruik van Meters.
