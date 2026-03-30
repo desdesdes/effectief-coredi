@@ -1,4 +1,4 @@
-# Na sheet 8: Eerste stappen Core DI
+# Eerste stappen Core DI
 
 Basis implementatie van .net core DI
 ```csharp
@@ -19,7 +19,7 @@ var bc = host.Services.GetRequiredService<PersonBC>();
 await host.StopAsync();
 ```
 
-# Na sheet 12: PersonBC & CrmValidations unit tests
+# PersonBC & CrmValidations unit tests
 
 Nu kunnen we de unit tests gaan schrijven
 - Voeg aan `Afas.Bvr.Core.Tests` een referentie toe naar `Afas.Bvr.Crm`.
@@ -133,7 +133,7 @@ Dit doen we door een class genaamd `AssemblyInfo.cs` toe te voegen aan het `CrmV
 
 Nu kun je wel de test wel uitvoeren.
 
-# Na sheet 14: Repository unit tests
+# Repository unit tests
 
 Creëer een unit test op `MSSqlRepository`.
 
@@ -142,7 +142,8 @@ Creëer een unit test op `MSSqlRepository`.
 [Property("Dependency", "MSSql")] // Let op, dit helpt om snel tests te filteren, omdat deze een sql dependency hebben
 public class MSSqlRepositoryTests
 {
-  private const string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
+  // Let op, indien je een andere connectie string in appsettings.json hebt staan moet je hier ook de connectie string aanpassen, of nog beter, deze uit appsettings.json halen.
+  private readonly string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
 
   class Demo : RepositoryObjectWithGuidId
   {
@@ -187,7 +188,7 @@ pas aan
 [Property("Dependency", "MSSql")]
 public class MSSqlRepositoryTests
 {
-  private const string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
+  private readonly string _connectionString = "Server=.\\profitsqldev;Database=codedidemo;Trusted_Connection=True;Encrypt=True;TrustServerCertificate=True;";
 ```
 
 naar 
@@ -225,13 +226,11 @@ public class AzureStorageTableRepositoryTests : RepositoryTests
 
 Draai de tests, we hebben direct een bug te pakken.
 
-Verander `var entity = await tableClient.GetEntityAsync<TableEntity>(id.ToString(), id.ToString());` naar `var entity = await tableClient.GetEntityIfExistsAsync<TableEntity>(id.ToString(), id.ToString());`.
+Verander `var entity = await tableClient.GetEntityAsync<TableEntity>(id.ToString(), id.ToString());` naar `var entity = await tableClient.GetEntityIfExistsAsync<TableEntity>(id.ToString(), id.ToString());` in `AzureStorageTableRepository.cs`.
 
 Run de tests opnieuw. Alles is gefixed.
 
-# Na sheet 16: Configuration in Core DI
-
-Let op: zoomen kan met WIN + '+' en zoom afsluiten met WIN + ESC.
+# Configuration in Core DI
 
 Applicaties zullen niet zomaar wisselen tussen providers. Zo willen we in de Console app eigenlijk alleen de `AzureStorageTableRepository` implementeren.
 De complete `StorageSettings` willen we ook laten vervallen en een betere oplossing creëren.
@@ -259,7 +258,8 @@ static async Task Main(string[] args)
 De code compileert weer en werkt weer. 
 
 Druk op F1 op `CreateApplicationBuilder` in `Program.cs`. Je ziet dat IConfiguration geladen worden wordt vanuit `appsettings.json`.
-We kunnen hier simpel gebruik van maken. 
+We kunnen hier simpel gebruik van maken. Voeg eerst de nuget package `Microsoft.Extensions.Options.ConfigurationExtensions` toe aan `Afas.Bvr.Core`.
+Op sommige plaatsen moet je `using Microsoft.Extensions.Options;` toevoegen, meestal help intellisense daarbij.
 
 ```csharp
 var builder = Host.CreateApplicationBuilder(args);
@@ -285,7 +285,7 @@ Run de code. Deze werkt weer.
 Tip 1: Bij BindConfiguration vind je een `string.Empty`, je kunt hier de sectie opgeven, vaak is het handig deze sectienaam op de `AzureStorageTableSettings` class 
 als `public const string Section = "AzureStorageTableSettings";` te definiëren.
 
-Tip 2: Achter `BindConfiguration()` kun je `ValidateDataAnnotations()` en/of `ValidateOnStart()` aanroepen om de settings te valideren.
+Tip 2: Achter `BindConfiguration()` kun je `ValidateDataAnnotations()` en/of `ValidateOnStart()` aanroepen om de settings te valideren. Hiervoor heb je wel de package `Microsoft.Extensions.Options.DataAnnotations` nodig.
 
 Ga naar **Debug** > **ConsoleApp1 Debug Properties** en geef bij de `Command line arguments` in `/Endpoint="https://bvr.nl"`.
 Run de code. De code gaat fout omdat de command line argument de appsettings heeft overschreven.
@@ -298,16 +298,16 @@ Knip de `SasSignature` regel uit appsettings.
 Druk op `Manage User Secrets` in de rechtermuisknop van het project.
 Plak de `SasSignature` regel in de `secrets.json` file.
 Run de code. Helaas werkt dit niet standaard in console apps. In asp.net core apps werkt het standaard wel. 
-We moeten in de console app even [instellingen](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-9.0) toevoegen, 
+We moeten in de console app even [instellingen](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/environments?view=aspnetcore-10.0) toevoegen, 
 zodat .net weet dat dit een development omgeving is.
 Ga naar **Debug** > **ConsoleApp1 Debug Properties** en geef bij de `Environment variabele` in `DOTNET_ENVIRONMENT=Development`.
 Run de code.
 
-Alleen de unit test compileert niet meer, pas deze aan naar:
+De unit test compileert niet meer, pas deze aan naar:
 ```csharp
 public override Repository CreateRepository()
 {
-  var set = Options.Create<AzureStorageTableSettings>(Options.Create(new AzureStorageTableSettings() {
+  var set = Options.Create(new AzureStorageTableSettings() {
     Endpoint = @"https://codedidemo.table.core.windows.net/",
     SasSignature = @"sv=2022-11-02&ss=t&srt=sco&sp=rwdlacu&se=2028-12-11T23:55:39Z&st=2024-12-11T15:55:39Z&spr=https&sig=e684bQmmbwMXysmGBlbIlA4h365DFVDlJa1nVVeINOk%3D"
   });
@@ -316,9 +316,9 @@ public override Repository CreateRepository()
 }
 ```
 
-Tip: Meestal eindigen we classes die we via IOptions injecteren met `Options`, dus `AzureStorageTableSettings` zou `AzureStorageTableOptions` kunnen heten.
+Tip: Meestal eindigen we classes die we via IOptions injecteren met `Options`, dus `AzureStorageTableSettings` zouden we kunnen hernoemen naar `AzureStorageTableOptions`.
 
-# Na sheet 20: Logging in Core DI
+# Logging in Core DI
 
 Verwijder de gehele `Logging` map.
 Pas `PersonBC` aan:
@@ -377,7 +377,7 @@ Denk eraan dat je ook de logging zou kunnen testen in unit test.
 
 Je kan [hier](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging-library-authors) meer lezen over logging.
 
-# Na sheet 25: Overgeslagen
+# In depth Core DI
 
 ## Extension methodes op IServiceFactory
 
@@ -748,3 +748,18 @@ Denk eraan dat er veel verschillende type counter beschrikbaar zijn, op dit mome
 ObservableGauge en Histogram.
 
 Je kunt [hier](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation) meer lezen over het gebruik van Meters.
+
+## Creeren DI class zonder eerst bij DI te registeren.
+
+Als je een grotere applicatie hebt wil je uiteraard niet alle classes by DI registereren, met name classes zoals PersonBC, CrmDependencies en CrmMeters zijn zeer domein specifiek en als je duizenden BC's hebt wil je deze niet allemaal bij DI registereren. 
+Om dit op te lossen maak je vaak een factory class en deze factory kan [ActivatorUtilities.CreateInstance](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.dependencyinjection.activatorutilities.createinstance) gebruiken om een object ter construeren en de juiste parameters via DI te injecteren. 
+
+Let op als je deze methode gebruikt ben je zelf verantwoordelijk voor eht tijdig opschonen van de objecten. Heirdoor hoeven de unit tests uiteraard niet te veranderen.
+
+Haal de registratie van `PersonBC`, `CrmDependencies` en `CrmMeters` uit `Program.cs`. Gebruik vervolgens `ActivatorUtilities.CreateInstance` in `Program.cs` om een instance van `PersonBC` te maken.
+
+```csharp
+var crmDependencies = ActivatorUtilities.CreateInstance<CrmDependencies>(host.Services);
+var crmMeters = ActivatorUtilities.CreateInstance<CrmMeters>(host.Services);
+var personBC = ActivatorUtilities.CreateInstance<PersonBC>(host.Services, crmDependencies, crmMeters);
+```

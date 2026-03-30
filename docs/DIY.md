@@ -70,7 +70,7 @@ In een unit tests draaien meerdere tests achter elkaar binnen 1 process waardoor
 - Snel (ms)
 - Makkelijk om op te zetten
 
-Om snel te zijn wordt in een unit test het proces hergebruikt. Een gegarandeerde manier om een goede unit test te breken is gebruik maken van static en threadstatic variabele. We moeten dus een andere oplossing voor de afhankelijkheden vinden.
+Om snel te zijn wordt in een unit test het proces hergebruikt. Omdat het proces wordt hergebruikt worden static en threadstatic variabelen ook gedeelt over unit test heen, waardoor een unuit test niet meer deterministisch, herhaalbaar, onafhankelijk van volgorde en geïsoleerd is. We moeten dus een andere oplossing zoeken voor static en threadstatic afhankelijkheden.
 
 Unit test framework zijn ook heel geschikt voor integratie tests, maar deze hoeven niet aan de bovenstaande regels te voldoen.
 
@@ -78,7 +78,7 @@ In de volgende secties gaan we stap voor stap de code aanpassen om Dependency In
 
 We beginnen met met het aanmaken en starten van .NET Core Dependency Injection container in de huidige applicatie.
 
-Voer de stappen uit in het hoofdstuk **Na sheet 8: Eerste stappen Core DI** van [Steps.md](Steps.md#na-sheet-8-eerste-stappen-core-di)
+Voer de stappen uit in het hoofdstuk **Eerste stappen Core DI** van [Steps.md](Steps.md#eerste-stappen-core-di)
 
 ## Core DI voordelen
 
@@ -123,7 +123,7 @@ Met parallel safe wordt bedoeld dat de instantiemethodes van het object gelijkti
 - Scoped services kunnen afhankelijk zijn van singleton en andere scoped services, maar niet van transient services. Dit komt omdat scoped services gedeeld worden binnen een bepaalde scope (zoals een web request). Afhankelijk van de implementatie van de scope kan het zijn dat meerdere threads/async calls binnen dezelfde scope plaatsvinden, waardoor er gedeelde staat kan ontstaan. Hoewel asp.net core dit standaard niet doet, kan een framework developer ervoor kiezen om dit wel te doen. Let dus goed op de documentatie van het framework dat je gebruikt.
 - Transient services kunnen afhankelijk zijn van singleton, scoped en andere transient services. Dit komt omdat transient services elke keer een nieuwe instantie creëren wanneer ze worden opgevraagd. Een transient service wordt dus nooit gedeeld, waardoor er geen problemen ontstaan met gedeelde staat en je instantiemethodes dus ook niet parallel safe hoeft te bouwen.
 
-Voer de stappen uit in het hoofdstuk **Na sheet 12: PersonBC & CrmValidations unit tests** van [Steps.md](Steps.md#na-sheet-12-personbc--crmvalidations-unit-tests)
+Voer de stappen uit in het hoofdstuk **PersonBC & CrmValidations unit tests** van [Steps.md](Steps.md#personbc--crmvalidations-unit-tests)
 
 ### Wat hebben we geleerd?
 
@@ -134,7 +134,7 @@ Voer de stappen uit in het hoofdstuk **Na sheet 12: PersonBC & CrmValidations un
 
 ## Herbruikbare unit tests
 
-Voer de stappen uit in het hoofdstuk **Na sheet 14: Repository unit tests** van [Steps.md](Steps.md#na-sheet-14-repository-unit-tests)
+Voer de stappen uit in het hoofdstuk **Repository unit tests** van [Steps.md](Steps.md#repository-unit-tests)
 
 ## Configuration via DI
 
@@ -151,7 +151,7 @@ De framework bouwers hebben een mooi lijstje verzameld:
   - In lokale webserver in appsettings.json
   - In azure web app/docker container in Environment variables
 
-Voer de stappen uit in het hoofdstuk **Na sheet 16: Configuration in Core DI** van [Steps.md](Steps.md#na-sheet-16-configuration-in-core-di)
+Voer de stappen uit in het hoofdstuk **Configuration in Core DI** van [Steps.md](Steps.md#configuration-in-core-di)
 
 ### Bronnen IConfiguration
 
@@ -184,7 +184,7 @@ De framework bouwers hebben een mooi lijstje verzameld:
 - Wat als we voor een gedeelte van de software meer willen loggen.
 - Wat als we 3de partij componenten gebruiken die ook logging hebben.
 
-Voer de stappen uit in het hoofdstuk **Na sheet 20: Logging in Core DI** van [Steps.md](Steps.md#na-sheet-20-logging-in-core-di)
+Voer de stappen uit in het hoofdstuk **Logging in Core DI** van [Steps.md](Steps.md#logging-in-core-di)
 
 ### Uitvoermogelijkheden
 
@@ -197,4 +197,4 @@ Voer de stappen uit in het hoofdstuk **Na sheet 20: Logging in Core DI** van [St
 
 ## Best practices
 
-Voer de stappen uit in het hoofdstuk **Na sheet 25: Overgeslagen** van [Steps.md](Steps.md#na-sheet-25-overgeslagen)
+Voer de stappen uit in het hoofdstuk **In depth Core DI** van [Steps.md](Steps.md#in-depth-code-di)
